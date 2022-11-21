@@ -1,0 +1,5 @@
+*.pyc
+out*.txt
+htmlcov/
+.coverage
+.ipynb_checkpoints
