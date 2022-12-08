@@ -5,7 +5,7 @@
 
 # Basic functions:
 # check_executable_exists(): Check to see whether an executable exists.
-#                            Error out or return False if not exists;
+#                            Error out or return False if it does not exist;
 #                            return True if executable exists in PATH.
 # C_compile(): Compile C code using gcc.
 # Execute(): Execute generated executable file, using taskset
@@ -26,7 +26,7 @@
 import io, os, shlex, subprocess, sys, time, multiprocessing, getpass, platform, glob
 
 # check_executable_exists(): Check to see whether an executable exists.
-#                            Error out or return False if not exists;
+#                            Error out or return False if it does not exist;
 #                            return True if executable exists in PATH.
 def check_executable_exists(exec_name, error_if_not_found=True):
     cmd = "where" if os.name == "nt" else "which"
@@ -60,9 +60,10 @@ def C_compile(main_C_output_path, main_C_output_file, compile_mode="optimized", 
         Execute_input_string(compile_string, os.devnull)
         # Check if executable exists (i.e., compile was successful), if not, try with more conservative compile flags.
         if not os.path.isfile(main_C_output_file):
-            # Step 3.A: Revert to more compatible gcc compile option
-            print("Most safe failed. Removing -fopenmp:")
-            compile_string = "gcc -std=gnu99 -O2 "+str(main_C_output_path)+" -o "+str(main_C_output_file)+" -lm"+additional_libraries
+            # Step 3.A: Maybe gcc is actually clang in disguise (as in MacOS)?!
+            #           https://stackoverflow.com/questions/33357029/using-openmp-with-clang
+            print("Most safe failed. Probably on MacOS. Replacing -fopenmp with -fopenmp=libomp:")
+            compile_string = "gcc -std=gnu99 -O2 -fopenmp=libomp "+str(main_C_output_path)+" -o "+str(main_C_output_file)+" -lm"+additional_libraries
             Execute_input_string(compile_string, os.devnull)
         if not os.path.isfile(main_C_output_file):
             print("Sorry, compilation failed")
@@ -223,7 +224,7 @@ def Execute_input_string(input_string, file_to_redirect_stdout=os.devnull, verbo
     delete_existing_files(filename)
     end = time.time()
     if verbose:
-        print("(BENCH): Finished executing in "+str(end-start)+" seconds.")
+        print("(BENCH): Finished executing in "+str(round(end-start, 1))+" seconds.")
 
 # delete_existing_files(file_or_wildcard):
 #          Runs del file_or_wildcard in Windows, or
@@ -241,10 +242,18 @@ def mkdir(newpath):
     if not os.path.exists(os.path.join(newpath)):
         os.makedirs(os.path.join(newpath))
 
-def output_Jupyter_notebook_to_LaTeXed_PDF(notebookname, location_of_template_file=os.path.join("."), verbose=True):
-    Execute_input_string(r"jupyter nbconvert --to latex --template-file "
-                         +os.path.join(location_of_template_file,"latex_nrpy_style.tplx")
-                         +r" --log-level='WARN' "+notebookname+".ipynb",verbose=False)
+# TO BE RUN ONLY FROM nrpytutorial or nrpytutorial/subdir/
+def output_Jupyter_notebook_to_LaTeXed_PDF(notebookname, verbose=True):
+    in_nrpytutorial_rootdir = os.getcwd().split("/")[-1] == "nrpytutorial"
+    if sys.version_info[0] == 3:
+        location_of_template_file = "."
+        if not in_nrpytutorial_rootdir:
+            location_of_template_file = ".."
+        Execute_input_string(r"jupyter nbconvert --to latex --template="
+                             +os.path.join(location_of_template_file, "nbconvert_latex_settings")
+                             +r" --log-level='WARN' "+notebookname+".ipynb",verbose=False)
+    else:
+        Execute_input_string(r"jupyter nbconvert --to latex --log-level='WARN' "+notebookname+".ipynb",verbose=False)
     for _i in range(3):  # _i is an unused variable.
         Execute_input_string(r"pdflatex -interaction=batchmode "+notebookname+".tex",verbose=False)
     delete_existing_files(notebookname+".out "+notebookname+".aux "+notebookname+".log")

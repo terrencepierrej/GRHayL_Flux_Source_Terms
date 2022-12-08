@@ -175,29 +175,40 @@ def add_to_Cfunction_dict__GRMHD_characteristic_speeds(formalism="ADM", outCpara
         cmaxs_rhs.append(cmax)
 
 
-    prims_velocities = ["u4_rU0", "u4_rU1", "u4_rU2", "u4_rU3",
-                        "u4_lU0", "u4_lU1", "u4_lU2", "u4_lU3"]
+    rho_b_r = sp.symbols("rhob_r")
+    rho_b_l = sp.symbols("rhob_l")
 
-    prims_mag_field = ["B_rU0", "B_rU1", "B_rU2",
-                       "B_lU0", "B_lU1", "B_lU2"]
+    prims_velocities_r = ["u4_rU0", "u4_rU1", "u4_rU2", "u4_rU3"]
+    prims_velocities_l = ["u4_lU0", "u4_lU1", "u4_lU2", "u4_lU3"]
+
+    prims_mag_field_r = ["B_rU0", "B_rU1", "B_rU2"]
+    prims_mag_field_l = ["B_lU0", "B_lU1", "B_lU2"]
+
 
     other_prims = ["P", "h", "rhob","Gamma_th", "epsilon_th", "dPcold_drhob"]
 
-    params = ["GAMMA_SPEED_LIMIT", "TINYDOUBLE", "sqrt4pi"]
+    characteristic_speeds = ["cmax", "cmin"]
+
+    params = [] #["TINYDOUBLE", "sqrt4pi"]
 
     prestring = ""
 
-    for var in prims_velocities + prims_mag_field:
-        prestring += "const double "+str(var)+" = reconstructed_prims->"+str(var)+";\n"
+    for var in prims_velocities_r + prims_mag_field_r:
+        prestring += "const double "+var+" = reconstructed_prims_r->"+var.replace("_r", "")+";\n"
+        
+    for var in prims_velocities_l + prims_mag_field_l:
+        prestring += "const double "+var+" = reconstructed_prims_l->"+var.replace("_l", "")+";\n"
 
     for var in other_prims:
-        prestring += "const double "+str(var)+"_r = reconstructed_prims->"+str(var)+"_r;\n"
-        prestring += "const double "+str(var)+"_l = reconstructed_prims->"+str(var)+"_l;\n"
+        prestring += "const double "+var+"_r = reconstructed_prims_r->"+var+";\n"
+        prestring += "const double "+var+"_l = reconstructed_prims_l->"+var+";\n"
     for var in params:
-        prestring += "const double "+str(var)+" = rhss_params->"+str(var)+";\n"
+        prestring += "const double "+var+" = rhss_params->"+var+";\n"
 
     prestring += "const double "+str(alpha_face)+" = metric_face_quantities->"+str(alpha_face)+";\n"
-
+    
+    checker = []
+    
     if formalism=="BSSN":
         prestring += "const double "+str(cf_face)+" = metric_face_quantities->"+str(cf_face)+";\n"
 
@@ -208,7 +219,10 @@ def add_to_Cfunction_dict__GRMHD_characteristic_speeds(formalism="ADM", outCpara
         for i in range(3):
             for j in range(3):
                 hDD_var = h_faceDD[i][j]
+                if hDD_var in checker:
+                    continue
                 prestring += "const double "+str(hDD_var)+" = metric_face_quantities->"+str(hDD_var)+";\n"
+                checker.append(hDD_var)
 
     else:
         for i in range(3):
@@ -218,12 +232,15 @@ def add_to_Cfunction_dict__GRMHD_characteristic_speeds(formalism="ADM", outCpara
         for i in range(3):
             for j in range(3):
                 gammaDD_var = gamma_faceDD[i][j]
+                if gammaDD_var in checker:
+                    continue
                 prestring += "const double "+str(gammaDD_var)+" = metric_face_quantities->"+str(gammaDD_var)+";\n"
+                checker.append(gammaDD_var)
 
     c_type = "void"
-    params   = "const rhss_paramstruct *restrict rhss_params, "
-    params  += "const prims_struct *restrict reconstructed_prims, "
-    params  += "const metric_quantities_struct *restrict metric_face_quantities, "
+#     params   = "const rhss_params_struct *restrict rhss_params, "
+    params  = "const reconstructed_prims_struct *restrict reconstructed_prims_r, const reconstructed_prims_struct *restrict reconstructed_prims_l,"
+    params  += "const metric_face_quantities_struct *restrict metric_face_quantities, "
     params  += "conservative_fluxes_struct *restrict conservative_fluxes"
 
     for flux_dirn in range(3):
@@ -235,9 +252,11 @@ def add_to_Cfunction_dict__GRMHD_characteristic_speeds(formalism="ADM", outCpara
 
         desc = "Compute the characteristic speeds in" + str(flux_dirn) +"th direction"
         name = "calculate_characteristic_speed_" + str(flux_dirn) +"th_direction"
+        includes = ["NRPy_basic_defines.h", "NRPy_function_prototypes.h"]
+        #"flux_src_header.h",
 
         add_to_Cfunction_dict(
-    #             includes=includes,
+                includes=includes,
                 desc=desc,
                 name=name,
                 params=params,

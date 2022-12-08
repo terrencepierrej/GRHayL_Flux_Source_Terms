@@ -80,19 +80,21 @@ def add_to_Cfunction_dict__Stilde_SourceTerms(formalism="ADM"):
     prims_velocities = ["u4U0", "u4U1", "u4U2", "u4U3"]
     
     prims = prims_velocities + ["BU0", "BU1", "BU2", "P", "h", "rhob"]
-    params = ["GAMMA_SPEED_LIMIT", "TINYDOUBLE", "sqrt4pi"]
+    params = [] #["TINYDOUBLE", "sqrt4pi"]
 
 
     prestring = ""
 
     for var in all_free_sysmbols:
         if str(var) in prims:
-            prestring += "const double "+str(var)+" = prims->"+str(var)+";\n"
+            prestring += "const double "+str(var)+" = reconstructed_prims->"+str(var)+";\n"
         if str(var) in params:
             prestring += "const double "+str(var)+" = rhss_params->"+str(var)+";\n"
 
     prestring += "const double "+str(GRMHD.alpha)+" = metric_quantities->"+str(GRMHD.alpha)+";\n"
-
+    
+    checker = []
+    
     if formalism=="BSSN":
         prestring += "const double "+str(GRMHD.Bq.trK)+" = metric_quantities->"+str(GRMHD.Bq.trK)+";\n"
         prestring += "const double "+str(GRMHD.Bq.cf)+" = metric_quantities->"+str(GRMHD.Bq.cf)+";\n"
@@ -100,16 +102,22 @@ def add_to_Cfunction_dict__Stilde_SourceTerms(formalism="ADM"):
         for i in range(3):
             vetU_var = GRMHD.Bq.vetU[i]
             prestring += "const double "+str(vetU_var)+" = metric_quantities->"+str(vetU_var)+";\n"
-
+        
         for i in range(3):
             for j in range(3):
                 aDD_var = GRMHD.Bq.aDD[i][j]
+                if aDD_var in checker: 
+                    continue
                 prestring += "const double "+str(aDD_var)+" = metric_quantities->"+str(aDD_var)+";\n"
+                checker.append(aDD_var)
 
         for i in range(3):
             for j in range(3):
                 hDD_var = GRMHD.Bq.hDD[i][j]
+                if hDD_var in checker: 
+                    continue
                 prestring += "const double "+str(hDD_var)+" = metric_quantities->"+str(hDD_var)+";\n"
+                checker.append(hDD_var)
 
         for var in all_free_sysmbols:
             if "_dD" in str(var):
@@ -123,12 +131,18 @@ def add_to_Cfunction_dict__Stilde_SourceTerms(formalism="ADM"):
         for i in range(3):
             for j in range(3):
                 KDD_var = GRMHD.KDD[i][j]
+                if KDD_var in checker: 
+                    continue
                 prestring += "const double "+str(KDD_var)+" = metric_quantities->"+str(KDD_var)+";\n"
-
+                checker.append(KDD_var)
+                
         for i in range(3):
             for j in range(3):
                 gammaDD_var = GRMHD.gammaDD[i][j]
+                if gammaDD_var in checker: 
+                    continue                
                 prestring += "const double "+str(gammaDD_var)+" = metric_quantities->"+str(gammaDD_var)+";\n"
+                checker.append(gammaDD_var)
 
         for var in all_free_sysmbols:
             if "_dD" in str(var):
@@ -137,9 +151,10 @@ def add_to_Cfunction_dict__Stilde_SourceTerms(formalism="ADM"):
        
     outCparams = "outCverbose=False,CSE_sorting=canonical,CSE_enable=True"
     desc = "Adds source term and connection terms to Stilde, rho_star and tau_tilde"
-#     includes = ["NRPy_basic_defines.h", "NRPy_function_prototypes.h"]
+    includes = ["NRPy_basic_defines.h", "NRPy_function_prototypes.h"]
+    # "flux_src_header.h", 
     name = "calculate_all_source_terms"
-    vars_to_write = ["conservative_sources->StildeD0_rhs", "conservative_sources->StildeD1_rhs", "conservative_sources->StildeD2_rhs", "conservative_rhs->tau_tilde_rhs"]
+    vars_to_write = ["conservative_sources->StildeD0_src", "conservative_sources->StildeD1_src", "conservative_sources->StildeD2_src", "conservative_sources->tau_tilde_src"]
 
     vars_rhs = [GRMHD.S_tilde_source_termD[0], 
                 GRMHD.S_tilde_source_termD[1], 
@@ -150,14 +165,14 @@ def add_to_Cfunction_dict__Stilde_SourceTerms(formalism="ADM"):
                filename="returnstring", prestring=prestring)
 
     c_type = "void"
-    params   = "const rhss_paramstruct *restrict rhss_params, "
-    params  += "const prims_struct *restrict prims, "
+#     params   = "const rhss_params_struct *restrict rhss_params, "
+    params  = "const reconstructed_prims_struct *restrict reconstructed_prims, "
     params  += "const metric_quantities_struct *restrict metric_quantities, "
     params  += "const metric_quantities_derivatives_struct *restrict metric_quantities_derivatives, "
     params  += "conservative_sources_struct *restrict conservative_sources"
     
     add_to_Cfunction_dict(
-#         includes=includes,
+        includes=includes,
         desc=desc,
         c_type=c_type, name=name, params=params,
         body=body,

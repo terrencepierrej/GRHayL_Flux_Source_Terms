@@ -1,0 +1,116 @@
+#include "./NRPy_basic_defines.h"
+#include "./NRPy_function_prototypes.h"
+/*
+ * Compute the characteristic speeds in2th direction
+ */
+void calculate_characteristic_speed_2th_direction(const reconstructed_prims_struct *restrict reconstructed_prims_r, const reconstructed_prims_struct *restrict reconstructed_prims_l,const metric_face_quantities_struct *restrict metric_face_quantities, conservative_fluxes_struct *restrict conservative_fluxes) {
+
+{
+const double u4_rU0 = reconstructed_prims_r->u4U0;
+const double u4_rU1 = reconstructed_prims_r->u4U1;
+const double u4_rU2 = reconstructed_prims_r->u4U2;
+const double u4_rU3 = reconstructed_prims_r->u4U3;
+const double B_rU0 = reconstructed_prims_r->BU0;
+const double B_rU1 = reconstructed_prims_r->BU1;
+const double B_rU2 = reconstructed_prims_r->BU2;
+const double u4_lU0 = reconstructed_prims_l->u4U0;
+const double u4_lU1 = reconstructed_prims_l->u4U1;
+const double u4_lU2 = reconstructed_prims_l->u4U2;
+const double u4_lU3 = reconstructed_prims_l->u4U3;
+const double B_lU0 = reconstructed_prims_l->BU0;
+const double B_lU1 = reconstructed_prims_l->BU1;
+const double B_lU2 = reconstructed_prims_l->BU2;
+const double P_r = reconstructed_prims_r->P;
+const double P_l = reconstructed_prims_l->P;
+const double h_r = reconstructed_prims_r->h;
+const double h_l = reconstructed_prims_l->h;
+const double rhob_r = reconstructed_prims_r->rhob;
+const double rhob_l = reconstructed_prims_l->rhob;
+const double Gamma_th_r = reconstructed_prims_r->Gamma_th;
+const double Gamma_th_l = reconstructed_prims_l->Gamma_th;
+const double epsilon_th_r = reconstructed_prims_r->epsilon_th;
+const double epsilon_th_l = reconstructed_prims_l->epsilon_th;
+const double dPcold_drhob_r = reconstructed_prims_r->dPcold_drhob;
+const double dPcold_drhob_l = reconstructed_prims_l->dPcold_drhob;
+const double alpha_face = metric_face_quantities->alpha_face;
+const double beta_faceU0 = metric_face_quantities->beta_faceU0;
+const double beta_faceU1 = metric_face_quantities->beta_faceU1;
+const double beta_faceU2 = metric_face_quantities->beta_faceU2;
+const double gamma_faceDD00 = metric_face_quantities->gamma_faceDD00;
+const double gamma_faceDD01 = metric_face_quantities->gamma_faceDD01;
+const double gamma_faceDD02 = metric_face_quantities->gamma_faceDD02;
+const double gamma_faceDD11 = metric_face_quantities->gamma_faceDD11;
+const double gamma_faceDD12 = metric_face_quantities->gamma_faceDD12;
+const double gamma_faceDD22 = metric_face_quantities->gamma_faceDD22;
+  const double tmp_1 = (1.0/((alpha_face)*(alpha_face)));
+  const double tmp_2 = beta_faceU0*gamma_faceDD00 + beta_faceU1*gamma_faceDD01 + beta_faceU2*gamma_faceDD02;
+  const double tmp_3 = beta_faceU0*gamma_faceDD01 + beta_faceU1*gamma_faceDD11 + beta_faceU2*gamma_faceDD12;
+  const double tmp_4 = beta_faceU0*gamma_faceDD02 + beta_faceU1*gamma_faceDD12 + beta_faceU2*gamma_faceDD22;
+  const double tmp_5 = B_lU0*(gamma_faceDD00*u4_lU1 + gamma_faceDD01*u4_lU2 + gamma_faceDD02*u4_lU3 + tmp_2*u4_lU0) + B_lU1*(gamma_faceDD01*u4_lU1 + gamma_faceDD11*u4_lU2 + gamma_faceDD12*u4_lU3 + tmp_3*u4_lU0) + B_lU2*(gamma_faceDD02*u4_lU1 + gamma_faceDD12*u4_lU2 + gamma_faceDD22*u4_lU3 + tmp_4*u4_lU0);
+  const double tmp_6 = B_lU0 + tmp_5*u4_lU1;
+  const double tmp_8 = tmp_1/((sqrt4pi)*(sqrt4pi));
+  const double tmp_9 = tmp_8/((u4_lU0)*(u4_lU0));
+  const double tmp_10 = B_lU1 + tmp_5*u4_lU2;
+  const double tmp_11 = B_lU2 + tmp_5*u4_lU3;
+  const double tmp_12 = tmp_8*(-((alpha_face)*(alpha_face)) + beta_faceU0*tmp_2 + beta_faceU1*tmp_3 + beta_faceU2*tmp_4);
+  const double tmp_15 = 2*tmp_11;
+  const double tmp_16 = tmp_5/u4_lU0;
+  const double tmp_17 = 2*tmp_8;
+  const double tmp_20 = gamma_faceDD00*((tmp_6)*(tmp_6))*tmp_9 + 2*gamma_faceDD01*tmp_10*tmp_6*tmp_9 + gamma_faceDD02*tmp_15*tmp_6*tmp_9 + gamma_faceDD11*((tmp_10)*(tmp_10))*tmp_9 + gamma_faceDD12*tmp_10*tmp_15*tmp_9 + gamma_faceDD22*((tmp_11)*(tmp_11))*tmp_9 + tmp_10*tmp_16*tmp_17*tmp_3 + tmp_12*((tmp_5)*(tmp_5)) + tmp_15*tmp_16*tmp_4*tmp_8 + tmp_16*tmp_17*tmp_2*tmp_6;
+  const double tmp_21 = tmp_20/(h_l*rhob_l + tmp_20);
+  const double tmp_23 = -(tmp_21 - 1)*((Gamma_th_l*epsilon_th_l*(Gamma_th_l - 1) + dPcold_drhob_l)*(Gamma_th_l*epsilon_th_l*(Gamma_th_l - 1) + dPcold_drhob_l))/((h_l)*(h_l));
+  const double tmp_25 = tmp_1*(tmp_21 + tmp_23);
+  const double tmp_26 = -tmp_21 - tmp_23 + 1;
+  const double tmp_27 = tmp_26*((u4_lU0)*(u4_lU0));
+  const double tmp_28 = (1.0/(tmp_25 + tmp_27));
+  const double tmp_29 = -beta_faceU1*tmp_1*(2*tmp_21 + 2*tmp_23) + 2*tmp_26*u4_lU0*u4_lU2;
+  const double tmp_30 = (1.0/2.0)*tmp_28*tmp_29;
+  const double tmp_33 = -((beta_faceU1)*(beta_faceU1))*tmp_1 + (gamma_faceDD00*gamma_faceDD22 - ((gamma_faceDD02)*(gamma_faceDD02)))/(gamma_faceDD00*gamma_faceDD11*gamma_faceDD22 - gamma_faceDD00*((gamma_faceDD12)*(gamma_faceDD12)) - ((gamma_faceDD01)*(gamma_faceDD01))*gamma_faceDD22 + 2*gamma_faceDD01*gamma_faceDD02*gamma_faceDD12 - ((gamma_faceDD02)*(gamma_faceDD02))*gamma_faceDD11);
+  const double tmp_34 = (4*tmp_25 + 4*tmp_27)*(tmp_26*((u4_lU2)*(u4_lU2)) - tmp_33*(tmp_21 + tmp_23));
+  const double tmp_35 = sqrt((1.0/2.0)*((tmp_29)*(tmp_29)) - 1.0/2.0*tmp_34 + (1.0/2.0)*fabs(((tmp_29)*(tmp_29)) - tmp_34));
+  const double tmp_36 = tmp_28*tmp_35;
+  const double tmp_37 = (1.0/2.0)*tmp_36;
+  const double tmp_39 = tmp_30 - tmp_37;
+  const double tmp_40 = (1.0/(TINYDOUBLE + tmp_36));
+  const double tmp_41 = (1.0/2.0)*fabs(tmp_36);
+  const double tmp_42 = tmp_37 + tmp_41;
+  const double tmp_44 = tmp_39*tmp_40*tmp_42;
+  const double tmp_45 = B_rU0*(gamma_faceDD00*u4_rU1 + gamma_faceDD01*u4_rU2 + gamma_faceDD02*u4_rU3 + tmp_2*u4_rU0) + B_rU1*(gamma_faceDD01*u4_rU1 + gamma_faceDD11*u4_rU2 + gamma_faceDD12*u4_rU3 + tmp_3*u4_rU0) + B_rU2*(gamma_faceDD02*u4_rU1 + gamma_faceDD12*u4_rU2 + gamma_faceDD22*u4_rU3 + tmp_4*u4_rU0);
+  const double tmp_46 = B_rU0 + tmp_45*u4_rU1;
+  const double tmp_48 = tmp_8/((u4_rU0)*(u4_rU0));
+  const double tmp_49 = B_rU1 + tmp_45*u4_rU2;
+  const double tmp_50 = B_rU2 + tmp_45*u4_rU3;
+  const double tmp_53 = tmp_45/u4_rU0;
+  const double tmp_54 = gamma_faceDD00*((tmp_46)*(tmp_46))*tmp_48 + 2*gamma_faceDD01*tmp_46*tmp_48*tmp_49 + 2*gamma_faceDD02*tmp_46*tmp_48*tmp_50 + gamma_faceDD11*tmp_48*((tmp_49)*(tmp_49)) + 2*gamma_faceDD12*tmp_48*tmp_49*tmp_50 + gamma_faceDD22*tmp_48*((tmp_50)*(tmp_50)) + tmp_12*((tmp_45)*(tmp_45)) + tmp_17*tmp_2*tmp_46*tmp_53 + tmp_17*tmp_3*tmp_49*tmp_53 + tmp_17*tmp_4*tmp_50*tmp_53;
+  const double tmp_55 = tmp_54/(h_r*rhob_r + tmp_54);
+  const double tmp_57 = -(tmp_55 - 1)*((Gamma_th_r*epsilon_th_r*(Gamma_th_r - 1) + dPcold_drhob_r)*(Gamma_th_r*epsilon_th_r*(Gamma_th_r - 1) + dPcold_drhob_r))/((h_r)*(h_r));
+  const double tmp_59 = tmp_1*(tmp_55 + tmp_57);
+  const double tmp_60 = -tmp_55 - tmp_57 + 1;
+  const double tmp_61 = tmp_60*((u4_rU0)*(u4_rU0));
+  const double tmp_62 = (1.0/(tmp_59 + tmp_61));
+  const double tmp_63 = -beta_faceU1*tmp_1*(2*tmp_55 + 2*tmp_57) + 2*tmp_60*u4_rU0*u4_rU2;
+  const double tmp_64 = (1.0/2.0)*tmp_62*tmp_63;
+  const double tmp_66 = (4*tmp_59 + 4*tmp_61)*(-tmp_33*(tmp_55 + tmp_57) + tmp_60*((u4_rU2)*(u4_rU2)));
+  const double tmp_67 = sqrt((1.0/2.0)*((tmp_63)*(tmp_63)) - 1.0/2.0*tmp_66 + (1.0/2.0)*fabs(((tmp_63)*(tmp_63)) - tmp_66));
+  const double tmp_68 = tmp_62*tmp_67;
+  const double tmp_69 = (1.0/2.0)*tmp_68;
+  const double tmp_71 = tmp_64 - tmp_69;
+  const double tmp_72 = (1.0/2.0)*fabs(tmp_68);
+  const double tmp_73 = (tmp_69 + tmp_72)/(TINYDOUBLE + tmp_68);
+  const double tmp_74 = tmp_71*tmp_73;
+  const double tmp_75 = tmp_30 + tmp_37;
+  const double tmp_76 = (1.0/(-TINYDOUBLE + tmp_28*tmp_35));
+  const double tmp_77 = tmp_37 - tmp_41;
+  const double tmp_79 = tmp_75*tmp_76*tmp_77;
+  const double tmp_81 = (tmp_69 - tmp_72)/(-TINYDOUBLE + tmp_62*tmp_67);
+  const double tmp_82 = tmp_81*(tmp_64 + tmp_69);
+  const double tmp_83 = fabs(tmp_39*tmp_40*tmp_42 - tmp_74 + tmp_75*tmp_76*tmp_77 - tmp_82);
+  const double tmp_84 = tmp_40*tmp_42*tmp_75;
+  const double tmp_85 = tmp_73*(tmp_64 + tmp_69);
+  const double tmp_86 = tmp_39*tmp_76*tmp_77;
+  const double tmp_87 = tmp_71*tmp_81;
+  const double tmp_88 = fabs(tmp_39*tmp_76*tmp_77 + tmp_40*tmp_42*tmp_75 - tmp_85 - tmp_87);
+  conservative_fluxes->cmin_dirn2 = -1.0/4.0*tmp_44 - 1.0/4.0*tmp_74 - 1.0/4.0*tmp_79 - 1.0/4.0*tmp_82 + (1.0/4.0)*tmp_83 + (1.0/2.0)*fabs((1.0/2.0)*tmp_44 + (1.0/2.0)*tmp_74 + (1.0/2.0)*tmp_79 + (1.0/2.0)*tmp_82 - 1.0/2.0*tmp_83);
+  conservative_fluxes->cmax_dirn2 = (1.0/4.0)*tmp_84 + (1.0/4.0)*tmp_85 + (1.0/4.0)*tmp_86 + (1.0/4.0)*tmp_87 + (1.0/4.0)*tmp_88 + (1.0/2.0)*fabs((1.0/2.0)*tmp_84 + (1.0/2.0)*tmp_85 + (1.0/2.0)*tmp_86 + (1.0/2.0)*tmp_87 + (1.0/2.0)*tmp_88);
+}
+}
