@@ -78,9 +78,6 @@ static inline void mhdflux(int i,int j,int k,const int flux_dirn,CCTK_REAL *Ul,C
              Ul[VX+offset],ONE_OVER_LAPSE_SQUARED,FACEVAL[SHIFTX+offset],psim4,FACEVAL[GUPXX+offset]);
 
   // Then compute cmax, cmin. This is required for the HLL flux.
-  // TPJ MADE A CHANGE HERE
-  // CCTK_REAL cmaxL = 1.0;
-  // CCTK_REAL cminL = 1.0;
   CCTK_REAL cmaxL =  MAX(0.0,MAX(cplusl,cplusr));
   CCTK_REAL cminL = -MIN(0.0,MIN(cminusl,cminusr));
 

@@ -45,15 +45,15 @@ CoordBase::boundary_size_z_upper = 3
 grid::avoid_origin = "no"
 CartGrid3D::type         = "coordbase"
 CoordBase::domainsize = "minmax"
-CoordBase::xmin = -10.0
-CoordBase::ymin = -10.0
-CoordBase::zmin = -10.0
-CoordBase::xmax =  12.5
-CoordBase::ymax =  12.5
-CoordBase::zmax =  12.5
-CoordBase::dx   =   2.5
-CoordBase::dy   =   2.5
-CoordBase::dz   =   2.5
+CoordBase::xmin = -12.0
+CoordBase::ymin = -12.0
+CoordBase::zmin = -12.0
+CoordBase::xmax =  12.0
+CoordBase::ymax =  12.0
+CoordBase::zmax =  12.0
+CoordBase::dx   =   1.0
+CoordBase::dy   =   1.0
+CoordBase::dz   =   1.0
 
 TmunuBase::stress_energy_storage = yes
 TmunuBase::stress_energy_at_RHS  = yes
@@ -68,7 +68,7 @@ ADMBase::metric_type     = "physical"
 
 SpaceMask::use_mask      = "yes"
 
-cactus::cctk_itlast = 2000
+cactus::cctk_itlast = 2
 #Cactus::terminate           = "time"
 #Cactus::cctk_final_time     = 10000
 
@@ -87,7 +87,7 @@ CarpetLib::poison_value      = 114
 
 # system specific Carpet paramters
 # Carpet::max_refinement_levels    = 4
-Carpet::max_refinement_levels    = 1
+Carpet::max_refinement_levels    = 0
 # Carpet::prolongation_order_space = 5
 # Carpet::prolongation_order_time  = 2
 
@@ -96,7 +96,7 @@ CarpetRegrid2::num_centres  = 1
 
 # CarpetRegrid2::num_levels_1 = 4
 CarpetRegrid2::num_levels_1 = 1
-CarpetRegrid2::radius_1[1]  = 1.0
+CarpetRegrid2::radius_1[1]  = 6.0
 # CarpetRegrid2::radius_1[2]  = 3.0
 # CarpetRegrid2::radius_1[3]  = 1.5
 

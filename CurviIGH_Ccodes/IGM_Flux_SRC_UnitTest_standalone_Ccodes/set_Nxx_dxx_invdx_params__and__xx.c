@@ -38,17 +38,17 @@ void set_Nxx_dxx_invdx_params__and__xx(const int EigenCoord, const int Nxx[3],pa
   params->invdx0 = 1.0/params->dxx0;
   xx[0] = (REAL *)malloc(sizeof(REAL)*Nxx_plus_2NGHOSTS0);
   for(int j=0;j<Nxx_plus_2NGHOSTS0;j++)
-    xx[0][j] = xxmin[0] + ((REAL)(j-NGHOSTS) + (1.0/2.0))*params->dxx0; // Cell-centered grid.
+    xx[0][j] = xxmin[0] + ((REAL)(j-NGHOSTS) + (1.0))*params->dxx0; // Cell-centered grid.
 
   params->dxx1 = (xxmax[1] - xxmin[1]) / ((REAL)Nxx[1]);
   params->invdx1 = 1.0/params->dxx1;
   xx[1] = (REAL *)malloc(sizeof(REAL)*Nxx_plus_2NGHOSTS1);
   for(int j=0;j<Nxx_plus_2NGHOSTS1;j++)
-    xx[1][j] = xxmin[1] + ((REAL)(j-NGHOSTS) + (1.0/2.0))*params->dxx1; // Cell-centered grid.
+    xx[1][j] = xxmin[1] + ((REAL)(j-NGHOSTS) + (1.0))*params->dxx1; // Cell-centered grid.
 
   params->dxx2 = (xxmax[2] - xxmin[2]) / ((REAL)Nxx[2]);
   params->invdx2 = 1.0/params->dxx2;
   xx[2] = (REAL *)malloc(sizeof(REAL)*Nxx_plus_2NGHOSTS2);
   for(int j=0;j<Nxx_plus_2NGHOSTS2;j++)
-    xx[2][j] = xxmin[2] + ((REAL)(j-NGHOSTS) + (1.0/2.0))*params->dxx2; // Cell-centered grid.
+    xx[2][j] = xxmin[2] + ((REAL)(j-NGHOSTS) + (1.0))*params->dxx2; // Cell-centered grid.
 }

@@ -45,10 +45,6 @@ static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const 
   // Notice in the loop below that we go from 3 to cctk_lsh-2 for i, j, AND k, even though
   //   we are only computing the flux in one direction at a time. This is because in the end,
   //   we only need the rhs's from 3 to cctk_lsh-3 for i, j, and k.
-  char out_filename[100];
-  sprintf(out_filename, "char_speeds_flux_dirn%d.txt", flux_dirn);
-  FILE *out3D = fopen(out_filename, "wb");
-   
 #pragma omp parallel for
   for(int k=cctk_nghostzones[2];k<cctk_lsh[2]-(cctk_nghostzones[2]-1);k++) for(int j=cctk_nghostzones[1];j<cctk_lsh[1]-(cctk_nghostzones[1]-1);j++) for(int i=cctk_nghostzones[0];i<cctk_lsh[0]-(cctk_nghostzones[0]-1);i++) {
 	int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
@@ -77,7 +73,7 @@ static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const 
 
 	// Next compute the metric values at the {i,j,k} +/- 1/2 faces (i.e., the "face values" of the metric)
 	CCTK_REAL FACEVAL[NUMVARS_FOR_METRIC_FACEVALS],FACEVALp1[NUMVARS_FOR_METRIC_FACEVALS];
-	for(int w=0;w<NUMVARS_FOR_METRIC_FACEVALS;w++) FACEVAL[w]   = COMPUTE_FCVAL(METRICm2[w],METRICm1[w],METRIC[w],METRICp1[w]); //if (w==8) {printf("%d %d %d ::: %.15e\n", i, j, k, FACEVAL[w]);}}
+	for(int w=0;w<NUMVARS_FOR_METRIC_FACEVALS;w++) FACEVAL[w]   = COMPUTE_FCVAL(METRICm2[w],METRICm1[w],METRIC[w],METRICp1[w]);
 	for(int w=0;w<NUMVARS_FOR_METRIC_FACEVALS;w++) FACEVALp1[w] = COMPUTE_FCVAL(METRICm1[w],METRIC[w],METRICp1[w],METRICp2[w]);
 	// Then compute the lapse and Psi4 = exp(4*phi)
 	CCTK_REAL FACEVAL_LAPSE_PSI4[NUMVARS_METRIC_AUX],FACEVAL_LAPSE_PSI4p1[NUMVARS_METRIC_AUX];
@@ -94,7 +90,6 @@ static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const 
 	// If we are not in the ghostzones, then add third-order accurate curvature terms to \tilde{S}_i RHS's
 	//    Without this if() statement, _rhs variables are in general set to nonzero values in ghostzones, which messes up frozen BC's.
 	//    Also, this if() statement should speed up the computation slightly.
-
 	if(k<cctk_lsh[2]-cctk_nghostzones[2] && j<cctk_lsh[1]-cctk_nghostzones[1] && i<cctk_lsh[0]-cctk_nghostzones[0]) {
 
 	  CCTK_REAL Psi6 = METRIC_LAP_PSI4[PSI2]*METRIC_LAP_PSI4[PSI4];
@@ -119,13 +114,6 @@ static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const 
 	  partial_i_gmunu[2][2] = (g4yy_fp1 - g4yy_f)*dxi[flux_dirn];
 	  partial_i_gmunu[2][3] = (g4yz_fp1 - g4yz_f)*dxi[flux_dirn];
 	  partial_i_gmunu[3][3] = (g4zz_fp1 - g4zz_f)*dxi[flux_dirn];
-
-	  // printf("%.15e %.15e\n", g4yy_fp1 - g4yy_f, g4tt_fp1 - g4tt_f);
-	  // printf("%.15e\n", dxi[flux_dirn]);
-
-	  fprintf(out3D,"%d %d %d %.15e %.15e\n", 
-            i, j, k,
-            cmax[index],cmin[index]);
 
 	  // Needed for tau_rhs computation:
 	  CCTK_REAL lapse_deriv[4] = { 0,0,0,0 };
@@ -160,7 +148,6 @@ static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const 
 	}
 
       }
-    fclose(out3D);
 
   // Notice in the loop below that we go from 3 to cctk_lsh-3 for i, j, AND k, even though
   //   we are only computing the flux in one direction. This is because in the end,
@@ -171,9 +158,9 @@ static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const 
 	int indexp1 = CCTK_GFINDEX3D(cctkGH,i+kronecker_delta[flux_dirn][0],j+kronecker_delta[flux_dirn][1],k+kronecker_delta[flux_dirn][2]);
 
 	rho_star_rhs[index] += (rho_star_flux[index] - rho_star_flux[indexp1]) * dxi[flux_dirn];
-	// tau_rhs[index]      += (tau_flux[index]      - tau_flux[indexp1]     ) * dxi[flux_dirn];
-	// st_x_rhs[index]     += (st_x_flux[index]     - st_x_flux[indexp1]    ) * dxi[flux_dirn];
-	// st_y_rhs[index]     += (st_y_flux[index]     - st_y_flux[indexp1]    ) * dxi[flux_dirn];
-	// st_z_rhs[index]     += (st_z_flux[index]     - st_z_flux[indexp1]    ) * dxi[flux_dirn];
+	tau_rhs[index]      += (tau_flux[index]      - tau_flux[indexp1]     ) * dxi[flux_dirn];
+	st_x_rhs[index]     += (st_x_flux[index]     - st_x_flux[indexp1]    ) * dxi[flux_dirn];
+	st_y_rhs[index]     += (st_y_flux[index]     - st_y_flux[indexp1]    ) * dxi[flux_dirn];
+	st_z_rhs[index]     += (st_z_flux[index]     - st_z_flux[indexp1]    ) * dxi[flux_dirn];
       }
 }

@@ -33,8 +33,8 @@ def find_cp_cm(flux_dirn, g4UU,
     v02 = vA**2 + (cs**2)*(1 - vA**2)
     
     a = (1 - v02)*(u4U[0]**2) - v02*g4UU[0][0]
-    b = 2*v02*g4UU[flux_dirn][0] - 2*u4U[flux_dirn]*u4U[0]*(1 - v02)
-    c = (1 - v02)*(u4U[flux_dirn]**2) - v02*g4UU[flux_dirn][flux_dirn]
+    b = 2*v02*g4UU[flux_dirn+1][0] - 2*u4U[flux_dirn+1]*u4U[0]*(1 - v02)
+    c = (1 - v02)*(u4U[flux_dirn+1]**2) - v02*g4UU[flux_dirn+1][flux_dirn+1]
 
     # Now, we are free to solve the quadratic equation as usual. We take care to avoid passing a
     # negative value to the sqrt function.

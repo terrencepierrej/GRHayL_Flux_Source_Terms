@@ -104,7 +104,7 @@ typedef struct __paramstruct__ {
 
 // Set the number of ghost zones
 // Note that upwinding in e.g., BSSN requires that NGHOSTS = FD_CENTDERIVS_ORDER/2 + 1 <- Notice the +1.
-#define NGHOSTS 1
+#define NGHOSTS 3
 //********************************************
 
 

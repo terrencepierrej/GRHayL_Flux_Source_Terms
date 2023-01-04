@@ -50,8 +50,8 @@ inline double randf(double scale) {
     return fabs((rand()/(double)(RAND_MAX))*scale);
 }
 
-#define inject_and_output_random_data_all(in_filename)( { \
-FILE *in3D = fopen(in_filename, "wb");\
+#define inject_and_output_random_data(in_filename)( { \
+FILE *in3D = fopen(in_filename, "w");\
 for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {\
       int index=CCTK_GFINDEX3D(cctkGH,i,j,k);\
       double scale = 1.0;\
@@ -79,118 +79,39 @@ for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk
       Bz[index] = randf(scale); \
       Bzl[index] = randf(scale); \
       Bzr[index] = randf(scale); \
-      gxx[index] = 1.23; /*randf(scale);*/ \
-      gxy[index] = 0.03; /*randf(scale);*/ \
-      gxz[index] = 0.07; /*randf(scale);*/ \
-      gyy[index] = 2.33; /*randf(scale);*/ \
-      gyz[index] = 0.041; /*randf(scale);*/ \
-      gzz[index] = 3.11; /*randf(scale);*/ \
-      alp[index] = x[index]+.2*z[index]-.33*y[index]; \
-      betax[index] = y[index]+.2*z[index]-.332*x[index]; /*randf(scale);*/ \
-      betay[index] = .9*x[index]+.44*y[index]-.33*z[index]; /*randf(scale);*/ \
-      betaz[index] = -1.2*z[index]+.27*x[index]-.33*x[index]; /*randf(scale);*/ \
+      gxx[index] = randf(scale); \
+      gxy[index] = randf(scale); \
+      gxz[index] = randf(scale); \
+      gyy[index] = randf(scale); \
+      gyz[index] = randf(scale); \
+      gzz[index] = randf(scale); \
+      lapm1[index] = randf(scale); \
+      betax[index] = randf(scale); \
+      betay[index] = randf(scale); \
+      betaz[index] = randf(scale); \
       kxx[index] = randf(scale); \
       kxy[index] = randf(scale); \
       kxz[index] = randf(scale); \
       kyy[index] = randf(scale); \
       kyz[index] = randf(scale); \
       kzz[index] = randf(scale); \
-  }\
-  const CCTK_INT num_pts = cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]; \
-  CCTK_REAL magic_number = 1.130814081305130e-9; \
-  fwrite(rho_b, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(P, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(rho_br, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Pr, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(rho_bl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Pl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(&magic_number, sizeof(CCTK_REAL), 1, in3D); \
-  fwrite(vx, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(vy, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(vz, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(vxr, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(vyr, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(vzr, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(vxl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(vyl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(vzl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(&magic_number, sizeof(CCTK_REAL), 1, in3D); \
-  fwrite(Bx, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(By, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Bz, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Bxr, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Byr, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Bzr, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Bxl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Byl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Bzl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(&magic_number, sizeof(CCTK_REAL), 1, in3D); \
-  fwrite(betax, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(betay, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(betaz, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(gxx, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(gxy, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(gxz, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(gyy, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(gyz, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(gzz, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(alp, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(&magic_number, sizeof(CCTK_REAL), 1, in3D); \
-  fwrite(kxx, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(kxy, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(kxz, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(kyy, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(kyz, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(kzz, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(&magic_number, sizeof(CCTK_REAL), 1, in3D); \
-  fclose(in3D);\
-}\
-  )
-
-
-#define inject_and_output_random_data_recons(in_filename)( { \
-FILE *in3D = fopen(in_filename, "wb");\
-for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {\
-      int index=CCTK_GFINDEX3D(cctkGH,i,j,k);\
-      double scale = 1.0;\
-      rho_bl[index] = randf(scale); \
-      rho_br[index] = randf(scale); \
-      Pl[index] = randf(scale); \
-      Pr[index] = randf(scale); \
-      vxl[index] = randf(scale); \
-      vxr[index] = randf(scale); \
-      vyl[index] = randf(scale); \
-      vyr[index] = randf(scale); \
-      vzl[index] = randf(scale); \
-      vzr[index] = randf(scale); \
-      Bxl[index] = randf(scale); \
-      Bxr[index] = randf(scale); \
-      Byl[index] = randf(scale); \
-      Byr[index] = randf(scale); \
-      Bzl[index] = randf(scale); \
-      Bzr[index] = randf(scale); \
-  }\
-  const CCTK_INT num_pts = cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]; \
-  CCTK_REAL magic_number = 1.130814081305130e-9; \
-  fwrite(rho_br, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Pr, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(rho_bl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Pl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(&magic_number, sizeof(CCTK_REAL), 1, in3D); \
-  fwrite(vxr, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(vyr, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(vzr, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(vxl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(vyl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(vzl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(&magic_number, sizeof(CCTK_REAL), 1, in3D); \
-  fwrite(Bxr, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Byr, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Bzr, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Bxl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Byl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(Bzl, sizeof(CCTK_REAL)*(num_pts), 1, in3D); \
-  fwrite(&magic_number, sizeof(CCTK_REAL), 1, in3D); \
+     fprintf(in3D,"%d %d %d %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e%.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e\n", \
+              i, j, k, \
+              x[index], y[index], z[index], \
+              rho_b[index], P[index], \
+              rho_br[index], Pr[index], \
+              rho_bl[index], Pl[index], \
+              vx[index], vy[index], vz[index], \
+              vxr[index], vyr[index], vzr[index], \
+              vxl[index], vyl[index], vzl[index], \
+              Bx[index], By[index], Bz[index], \
+              Bxr[index], Byr[index], Bzr[index], \
+              Bxl[index], Byl[index], Bzl[index],\
+              gxx[index], gxy[index], gxz[index], gyy[index], gyz[index], gzz[index], \
+              lapm1[index], \
+              betax[index], betay[index], betaz[index], \
+              kxx[index], kxy[index], kxz[index], kyy[index], kyz[index], kzz[index]); \
+    }\
   fclose(in3D);\
 }\
   )
@@ -238,7 +159,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 
   char dirn1_filename[100];
   sprintf(dirn1_filename, "input_data1.txt");
-  inject_and_output_random_data_all(dirn1_filename);
+  inject_and_output_random_data(dirn1_filename);
 
   // in_prims,out_prims_r, and out_prims_l are arrays of pointers to the actual gridfunctions.
   gf_and_gz_struct in_prims[MAXNUMVARS],out_prims_r[MAXNUMVARS],out_prims_l[MAXNUMVARS];
@@ -378,11 +299,11 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   // reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
   //                              eos,in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
   //Right and left face values of BI_CENTER are used in mhdflux computation (first to compute b^a).
-//   //   Instead of reconstructing, we simply set B^x face values to be consistent with BX_STAGGER.
-// #pragma omp parallel for
-//   for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
-//         int index=CCTK_GFINDEX3D(cctkGH,i,j,k), indexim1=CCTK_GFINDEX3D(cctkGH,i-1+(i==0),j,k); /* indexim1=0 when i=0 */
-//         out_prims_r[BX_CENTER].gf[index]=out_prims_l[BX_CENTER].gf[index]=in_prims[BX_STAGGER].gf[indexim1]; }
+  //   Instead of reconstructing, we simply set B^x face values to be consistent with BX_STAGGER.
+#pragma omp parallel for
+  for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
+        int index=CCTK_GFINDEX3D(cctkGH,i,j,k), indexim1=CCTK_GFINDEX3D(cctkGH,i-1+(i==0),j,k); /* indexim1=0 when i=0 */
+        out_prims_r[BX_CENTER].gf[index]=out_prims_l[BX_CENTER].gf[index]=in_prims[BX_STAGGER].gf[indexim1]; }
   // Then add fluxes to RHS for hydro variables {rho_b,P,vx,vy,vz}:
   // This function is housed in the file: "add_fluxes_and_source_terms_to_hydro_rhss.C"
   add_fluxes_and_source_terms_to_hydro_rhss(flux_dirn,cctkGH,cctk_lsh,cctk_nghostzones,dX,   metric,in_prims,TUPmunu,
@@ -399,7 +320,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 
   char dirn2_filename[100];
   sprintf(dirn2_filename, "input_data2.txt");
-  inject_and_output_random_data_recons(dirn2_filename);
+  inject_and_output_random_data(dirn2_filename);
   // First compute ftilde, which is used for flattening left and right face values
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
   // TPJ made a change here
@@ -462,10 +383,10 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   //                              eos,in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
   //Right and left face values of BI_CENTER are used in mhdflux computation (first to compute b^a).
   //   Instead of reconstructing, we simply set B^y face values to be consistent with BY_STAGGER.
-// #pragma omp parallel for
-//   for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
-//         int index=CCTK_GFINDEX3D(cctkGH,i,j,k), indexjm1=CCTK_GFINDEX3D(cctkGH,i,j-1+(j==0),k); /* indexjm1=0 when j=0 */
-//         out_prims_r[BY_CENTER].gf[index]=out_prims_l[BY_CENTER].gf[index]=in_prims[BY_STAGGER].gf[indexjm1]; }
+#pragma omp parallel for
+  for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
+        int index=CCTK_GFINDEX3D(cctkGH,i,j,k), indexjm1=CCTK_GFINDEX3D(cctkGH,i,j-1+(j==0),k); /* indexjm1=0 when j=0 */
+        out_prims_r[BY_CENTER].gf[index]=out_prims_l[BY_CENTER].gf[index]=in_prims[BY_STAGGER].gf[indexjm1]; }
   // Then add fluxes to RHS for hydro variables {rho_b,P,vx,vy,vz}:
   // This function is housed in the file: "add_fluxes_and_source_terms_to_hydro_rhss.C"
   add_fluxes_and_source_terms_to_hydro_rhss(flux_dirn,cctkGH,cctk_lsh,cctk_nghostzones,dX,   metric,in_prims,TUPmunu,
@@ -513,7 +434,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   flux_dirn=3;
   char dirn3_filename[100];
   sprintf(dirn3_filename, "input_data3.txt");
-  inject_and_output_random_data_recons(dirn3_filename);
+  inject_and_output_random_data(dirn3_filename);
 
   // First compute ftilde, which is used for flattening left and right face values
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
@@ -566,10 +487,10 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   //                              eos,in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
   //Right and left face values of BI_CENTER are used in mhdflux computation (first to compute b^a).
   //   Instead of reconstructing, we simply set B^z face values to be consistent with BZ_STAGGER.
-// #pragma omp parallel for
-//   for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
-//         int index=CCTK_GFINDEX3D(cctkGH,i,j,k), indexkm1=CCTK_GFINDEX3D(cctkGH,i,j,k-1+(k==0)); /* indexkm1=0 when k=0 */
-//         out_prims_r[BZ_CENTER].gf[index]=out_prims_l[BZ_CENTER].gf[index]=in_prims[BZ_STAGGER].gf[indexkm1]; }
+#pragma omp parallel for
+  for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
+        int index=CCTK_GFINDEX3D(cctkGH,i,j,k), indexkm1=CCTK_GFINDEX3D(cctkGH,i,j,k-1+(k==0)); /* indexkm1=0 when k=0 */
+        out_prims_r[BZ_CENTER].gf[index]=out_prims_l[BZ_CENTER].gf[index]=in_prims[BZ_STAGGER].gf[indexkm1]; }
   // Then add fluxes to RHS for hydro variables {rho_b,P,vx,vy,vz}:
   // This function is housed in the file: "add_fluxes_and_source_terms_to_hydro_rhss.C"
   add_fluxes_and_source_terms_to_hydro_rhss(flux_dirn,cctkGH,cctk_lsh,cctk_nghostzones,dX,   metric,in_prims,TUPmunu,
@@ -577,25 +498,6 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
                                             cmax_z,cmin_z,
                                             rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,
                                             rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs);
-
-  // char out_filename[100];
-  // sprintf(out_filename, "output_rhs_data.txt");
-  // FILE *out3D = fopen(out_filename, "wb");
-
-  // // #pragma omp parallel for
-  // for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
-  //   int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
-
-  //  fprintf(out3D,"%d %d %d %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e\n", 
-  //           i, j, k,
-  //           x[index], y[index], z[index],
-  //           rho_star_rhs[index], tau_rhs[index],
-  //           st_x_rhs[index], st_y_rhs[index], st_z_rhs[index]);
-  //    }
-  // fclose(out3D);
-
-  // printf("Finshed printing data.\n");
-  // exit(1);
 
   char out_filename[100];
   sprintf(out_filename, "output_rhs_data.txt");
@@ -605,18 +507,16 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
     int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-   fprintf(out3D,"%d %d %d %.15e %.15e %.15e %.15e\n", 
+   fprintf(out3D,"%d %d %d %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e\n", 
             i, j, k,
-            tau_rhs[index],
-            st_x_rhs[index],
-            st_y_rhs[index],
-            st_z_rhs[index]);
+            x[index], y[index], z[index],
+            rho_star_rhs[index], tau_rhs[index],
+            st_x_rhs[index], st_y_rhs[index], st_z_rhs[index]);
      }
   fclose(out3D);
 
   printf("Finshed printing data.\n");
   exit(1);
-
 
   // in_prims[{VYR,VYL,VZR,VZL}].gz_{lo,hi} ghostzones are not set correcty.
   //    We fix this below.
@@ -758,3 +658,191 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 #include "mhdflux.C"
 #include "A_i_rhs_no_gauge_terms.C"
 #include "Lorenz_psi6phi_rhs__add_gauge_terms_to_A_i_rhs.C"
+
+
+
+/*
+
+fwrite(x, sizeof(CCTK_REAL), cctk_lsh[0], in3D); \
+  fwrite(y, sizeof(CCTK_REAL), cctk_lsh[1], in3D); \
+  fwrite(z, sizeof(CCTK_REAL), cctk_lsh[2], in3D); \
+  fwrite(rho_b, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(P, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(rho_br, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(Pr, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(rho_bl, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(Pl, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(vx, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(vy, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(vz, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(vxr, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(vyr, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(vzr, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(vxl, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(vyl, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(vzl, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(Bx, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(By, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(Bz, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(Bxr, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(Byr, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(Bzr, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(Bxl, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(Byl, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(Bzl, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(betax, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(betay, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(betaz, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(gxx, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(gxy, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(gxz, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(gyy, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(gyz, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(gzz, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(lapm1, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(betax, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(betay, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(betaz, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(kxx, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(kxy, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(kxz, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(kyy, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(kyz, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \
+  fwrite(kzz, sizeof(CCTK_REAL), cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2], in3D); \ 
+
+
+
+  typedef struct __inputdata__ {
+  double rho_b[20*20*20];
+  double rho_bl[20*20*20];
+  double rho_br[20*20*20];
+  double P[20*20*20];
+  double Pl[20*20*20];
+  double Pr[20*20*20];
+  double vx[20*20*20];
+  double vxl[20*20*20];
+  double vxr[20*20*20];
+  double vy[20*20*20];
+  double vyl[20*20*20];
+  double vyr[20*20*20];
+  double vz[20*20*20];
+  double vzl[20*20*20];
+  double vzr[20*20*20];
+  double Bx[20*20*20];
+  double Bxl[20*20*20];
+  double Bxr[20*20*20];
+  double By[20*20*20];
+  double Byl[20*20*20];
+  double Byr[20*20*20];
+  double Bz[20*20*20];
+  double Bzl[20*20*20];
+  double Bzr[20*20*20];
+  double gxx[20*20*20];
+  double gxy[20*20*20];
+  double gxz[20*20*20];
+  double gyy[20*20*20];
+  double gyz[20*20*20];
+  double gzz[20*20*20];
+  double lapm1[20*20*20];
+  double betax[20*20*20];
+  double betay[20*20*20];
+  double betaz[20*20*20];
+  double kxx[20*20*20];
+  double kxy[20*20*20];
+  double kxz[20*20*20];
+  double kyy[20*20*20];
+  double kyz[20*20*20];
+  double kzz[20*20*20];
+} inputdata_struct;
+
+#define inject_and_output_random_data(in_filename)( {\
+  FILE *in3D = fopen(in_filename, "wb");\
+  inputdata_struct inputdata;\
+  for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {\
+    int index=CCTK_GFINDEX3D(cctkGH,i,j,k);\
+    double scale = 1.0;\
+    rho_b[index] = randf(scale); \
+    inputdata.rho_b[index] = rho_b[index];\
+    rho_bl[index] = randf(scale); \
+    inputdata.rho_bl[index] = rho_bl[index];\
+    rho_br[index] = randf(scale); \
+    inputdata.rho_br[index] = rho_br[index];\
+    P[index] = randf(scale); \
+    inputdata.P[index] = P[index];\
+    Pl[index] = randf(scale); \
+    inputdata.Pl[index] = Pl[index];\
+    Pr[index] = randf(scale); \
+    inputdata.Pr[index] = Pr[index];\
+    vx[index] = randf(scale); \
+    inputdata.vx[index] = vx[index];\
+    vxl[index] = randf(scale); \
+    inputdata.vxl[index] = vxl[index];\
+    vxr[index] = randf(scale); \
+    inputdata.vxr[index] = vxr[index];\
+    vy[index] = randf(scale); \
+    inputdata.vy[index] = vy[index];\
+    vyl[index] = randf(scale); \
+    inputdata.vyl[index] = vyl[index];\
+    vyr[index] = randf(scale); \
+    inputdata.vyr[index] = vyr[index];\
+    vz[index] = randf(scale); \
+    inputdata.vz[index] = vz[index];\
+    vzl[index] = randf(scale); \
+    inputdata.vzl[index] = vzl[index];\
+    vzr[index] = randf(scale); \
+    inputdata.vzr[index] = vzr[index];\
+    Bx[index] = randf(scale); \
+    inputdata.Bx[index] = Bx[index];\
+    Bxl[index] = randf(scale); \
+    inputdata.Bxl[index] = Bxl[index];\
+    Bxr[index] = randf(scale); \
+    inputdata.Bxr[index] = Bxr[index];\
+    By[index] = randf(scale); \
+    inputdata.By[index] = By[index];\
+    Byl[index] = randf(scale); \
+    inputdata.Byl[index] = Byl[index];\
+    Byr[index] = randf(scale); \
+    inputdata.Byr[index] = Byr[index];\
+    Bz[index] = randf(scale); \
+    inputdata.Bz[index] = Bz[index];\
+    Bzl[index] = randf(scale); \
+    inputdata.Bzl[index] = Bzl[index];\
+    Bzr[index] = randf(scale); \
+    inputdata.Bzr[index] = Bzr[index];\
+    gxx[index] = randf(scale); \
+    inputdata.gxx[index] = gxx[index];\
+    gxy[index] = randf(scale); \
+    inputdata.gxy[index] = gxy[index];\
+    gxz[index] = randf(scale); \
+    inputdata.gxz[index] = gxz[index];\
+    gyy[index] = randf(scale); \
+    inputdata.gyy[index] = gyy[index];\
+    gyz[index] = randf(scale); \
+    inputdata.gyz[index] = gyz[index];\
+    gzz[index] = randf(scale); \
+    inputdata.gzz[index] = gzz[index];\
+    lapm1[index] = randf(scale); \
+    inputdata.lapm1[index] = lapm1[index];\
+    betax[index] = randf(scale); \
+    inputdata.betax[index] = betax[index];\
+    betay[index] = randf(scale); \
+    inputdata.betay[index] = betay[index];\
+    betaz[index] = randf(scale); \
+    inputdata.betaz[index] = betaz[index];\
+    kxx[index] = randf(scale); \
+    inputdata.kxx[index] = kxx[index];\
+    kxy[index] = randf(scale); \
+    inputdata.kxy[index] = kxy[index];\
+    kxz[index] = randf(scale); \
+    inputdata.kxz[index] = kxz[index];\
+    kyy[index] = randf(scale); \
+    inputdata.kyy[index] = kyy[index];\
+    kyz[index] = randf(scale); \
+    inputdata.kyz[index] = kyz[index];\
+    kzz[index] = randf(scale); \
+    inputdata.kzz[index] = kzz[index];\
+  }\
+  fwrite (&inputdata, sizeof(inputdata_struct), 1, in3D);\
+  fclose(in3D);\
+  } )
+*/

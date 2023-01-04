@@ -43,21 +43,21 @@ void IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij
         /*********************************
          * Apply det gtij = 1 constraint *
          *********************************/
-        // CCTK_REAL gtijdet = gtxxL * gtyyL * gtzzL + gtxyL * gtyzL * gtxzL + gtxzL * gtxyL * gtyzL -
-        //   gtxzL * gtyyL * gtxzL - gtxyL * gtxyL * gtzzL - gtxxL * gtyzL * gtyzL;
+        CCTK_REAL gtijdet = gtxxL * gtyyL * gtzzL + gtxyL * gtyzL * gtxzL + gtxzL * gtxyL * gtyzL -
+          gtxzL * gtyyL * gtxzL - gtxyL * gtxyL * gtzzL - gtxxL * gtyzL * gtyzL;
 
-        // CCTK_REAL gtijdet_Fm1o3 = fabs(1.0/cbrt(gtijdet));
+        CCTK_REAL gtijdet_Fm1o3 = fabs(1.0/cbrt(gtijdet));
 
-        // gtxxL = gtxxL * gtijdet_Fm1o3;
-        // gtxyL = gtxyL * gtijdet_Fm1o3;
-        // gtxzL = gtxzL * gtijdet_Fm1o3;
-        // gtyyL = gtyyL * gtijdet_Fm1o3;
-        // gtyzL = gtyzL * gtijdet_Fm1o3;
-        // gtzzL = gtzzL * gtijdet_Fm1o3;
+        gtxxL = gtxxL * gtijdet_Fm1o3;
+        gtxyL = gtxyL * gtijdet_Fm1o3;
+        gtxzL = gtxzL * gtijdet_Fm1o3;
+        gtyyL = gtyyL * gtijdet_Fm1o3;
+        gtyzL = gtyzL * gtijdet_Fm1o3;
+        gtzzL = gtzzL * gtijdet_Fm1o3;
 
-        // if(gtijdet<0.0) { CCTK_VWarn(CCTK_WARN_ALERT,__LINE__, __FILE__, CCTK_THORNSTRING,
-        //                              "WARNING: det[3-metric]<0.0 at point  %d %d %d | cctk_lsh: %d %d %d. Hopefully this is occurring in gz's! gtij_phys = %.2e %.2e %.2e %.2e %.2e %.2e gtij_new = %.2e %.2e %.2e %.2e %.2e %.2e | gijdet = %.2e | gtijdet = %.2e",
-				//      i,j,k,cctk_lsh[0],cctk_lsh[1],cctk_lsh[2],gxx_physL,gxy_physL,gxz_physL,gyy_physL,gyz_physL,gzz_physL,gtxxL,gtxyL,gtxzL,gtyyL,gtyzL,gtzzL,-gijdet,gtijdet); }
+        if(gtijdet<0.0) { CCTK_VWarn(CCTK_WARN_ALERT,__LINE__, __FILE__, CCTK_THORNSTRING,
+                                     "WARNING: det[3-metric]<0.0 at point  %d %d %d | cctk_lsh: %d %d %d. Hopefully this is occurring in gz's! gtij_phys = %.2e %.2e %.2e %.2e %.2e %.2e gtij_new = %.2e %.2e %.2e %.2e %.2e %.2e | gijdet = %.2e | gtijdet = %.2e",
+				     i,j,k,cctk_lsh[0],cctk_lsh[1],cctk_lsh[2],gxx_physL,gxy_physL,gxz_physL,gyy_physL,gyz_physL,gzz_physL,gtxxL,gtxyL,gtxzL,gtyyL,gtyzL,gtzzL,-gijdet,gtijdet); }
 
         CCTK_REAL Psi4 = psiL*psiL*psiL*psiL;
         /*****************************************
