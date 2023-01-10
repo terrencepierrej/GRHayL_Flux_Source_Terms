@@ -19,9 +19,9 @@ static inline void calculate_metric_face_values(const paramstruct *restrict para
                                   double *restrict auxevol_gfs) {
   #include "./set_Cparameters.h"
 
-  LOOP_REGION(NGHOSTS - 1, Nxx_plus_2NGHOSTS0 - 1,
-              NGHOSTS - 1, Nxx_plus_2NGHOSTS1 - 1,
-              NGHOSTS - 1, Nxx_plus_2NGHOSTS2 - 1) {
+  LOOP_REGION(2, Nxx_plus_2NGHOSTS0 - 1,
+              2, Nxx_plus_2NGHOSTS1 - 1,
+              2, Nxx_plus_2NGHOSTS2 - 1) {
 
     int idxm2 = IDX3S(i0 - 2*kronecker_delta[flux_dirn+1][0], 
                       i1 - 2*kronecker_delta[flux_dirn+1][1], 
@@ -214,7 +214,8 @@ int main(int argc, const char *argv[]) {
   const int Nxx_plus_2NGHOSTS2 = griddata.params.Nxx_plus_2NGHOSTS2;
   const int Nxx_plus_2NGHOSTS_tot = Nxx_plus_2NGHOSTS0*Nxx_plus_2NGHOSTS1*Nxx_plus_2NGHOSTS2;
 
-  double *restrict evol_gfs    = (double *restrict)malloc(sizeof(double) * NUM_EVOL_GFS * Nxx_plus_2NGHOSTS_tot);
+  double *restrict     evol_gfs    = (double *restrict)malloc(sizeof(double) * NUM_EVOL_GFS * Nxx_plus_2NGHOSTS_tot);
+  double *restrict etk_evol_gfs    = (double *restrict)malloc(sizeof(double) * NUM_EVOL_GFS * Nxx_plus_2NGHOSTS_tot);
   double *restrict auxevol_gfs = (double *restrict)malloc(sizeof(double) * NUM_AUXEVOL_GFS * Nxx_plus_2NGHOSTS_tot);
 
 
@@ -265,9 +266,9 @@ int main(int argc, const char *argv[]) {
                                 metric_gfs,
                                 auxevol_gfs);
 
-  LOOP_REGION(NGHOSTS - 1, Nxx_plus_2NGHOSTS0 - 2,
-              NGHOSTS - 1, Nxx_plus_2NGHOSTS1 - 2,
-              NGHOSTS - 1, Nxx_plus_2NGHOSTS2 - 2) {
+  LOOP_REGION(NGHOSTS, Nxx_plus_2NGHOSTS0 - (NGHOSTS),
+              NGHOSTS, Nxx_plus_2NGHOSTS1 - (NGHOSTS),
+              NGHOSTS, Nxx_plus_2NGHOSTS2 - (NGHOSTS)) {
     
     int ijk  = IDX3S(i0, i1, i2);
 
@@ -279,8 +280,8 @@ int main(int argc, const char *argv[]) {
     auxevol_gfs[IDX4ptS(H_RGF, ijk)] = 1.0;
     auxevol_gfs[IDX4ptS(H_LGF, ijk)] = 1.0;
 
-    auxevol_gfs[IDX4ptS(GAMMA_TH_RGF, ijk)] = 1.0;
-    auxevol_gfs[IDX4ptS(GAMMA_TH_LGF, ijk)] = 1.0;
+    auxevol_gfs[IDX4ptS(GAMMA_TH_RGF, ijk)] = 4.567;
+    auxevol_gfs[IDX4ptS(GAMMA_TH_LGF, ijk)] = 4.567;
 
     auxevol_gfs[IDX4ptS(EPSILON_TH_RGF, ijk)] = 1.0;
     auxevol_gfs[IDX4ptS(EPSILON_TH_LGF, ijk)] = 1.0;
@@ -305,19 +306,53 @@ int main(int argc, const char *argv[]) {
                             &metric_quantities,
                             &metric_face_quantities,
                             &metric_quantities_derivatives);
+    // printf("indices = %d %d %d\n", i0, i1, i2);
+    calculate_HLLE_fluxes0(&reconstructed_prims_r, 
+                           &reconstructed_prims_l,
+                           &metric_face_quantities, 
+                           &conservative_fluxes);
 
-    calculate_characteristic_speed_0th_direction(&reconstructed_prims_r, 
-                                                 &reconstructed_prims_l,
-                                                 &metric_face_quantities, 
-                                                 &conservative_fluxes);
+    auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED0GF, ijk)]  = conservative_fluxes.HLLE_flux_StildeD0;
+    auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED1GF, ijk)]  = conservative_fluxes.HLLE_flux_StildeD1;
+    auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED2GF, ijk)]  = conservative_fluxes.HLLE_flux_StildeD2;
+    auxevol_gfs[IDX4ptS(HLLE_FLUX_RHO_STARGF, ijk)]  = conservative_fluxes.HLLE_flux_rho_star;
+    auxevol_gfs[IDX4ptS(HLLE_FLUX_TAU_TILDEGF,ijk)]  = conservative_fluxes.HLLE_flux_tau_tilde;
 
-    printf("%d %d %d %.15e %.15e\n", i0, i1, i2, 
-                                     conservative_fluxes.cmax_dirn0,
-                                     conservative_fluxes.cmin_dirn0);
+    // printf("%d %d %d %.15e %.15e %.15e %.15e %.15e\n", i0, i1, i2,
+    //                                                    conservative_fluxes.HLLE_flux_StildeD0,
+    //                                                    conservative_fluxes.HLLE_flux_StildeD1,
+    //                                                    conservative_fluxes.HLLE_flux_StildeD2,
+    //                                                    conservative_fluxes.HLLE_flux_rho_star,
+    //                                                    conservative_fluxes.HLLE_flux_tau_tilde);
   }
 
   double inv_dxx = 1.0 / dxxi[flux_dirn+1];
   printf("%.15e\n", inv_dxx);
+
+
+  LOOP_REGION(NGHOSTS, Nxx_plus_2NGHOSTS0 - NGHOSTS,
+              NGHOSTS, Nxx_plus_2NGHOSTS1 - NGHOSTS,
+              NGHOSTS, Nxx_plus_2NGHOSTS2 - NGHOSTS) {
+    
+    int idx  = IDX3S(i0, i1, i2);
+
+    int idxp1 = IDX3S(i0 + kronecker_delta[flux_dirn+1][0], 
+                      i1 + kronecker_delta[flux_dirn+1][1], 
+                      i2 + kronecker_delta[flux_dirn+1][2]);
+
+    evol_gfs[IDX4ptS(STILDED0GF, idx)]  = inv_dxx*(auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED0GF, idx)] - auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED0GF, idxp1)]);
+    evol_gfs[IDX4ptS(STILDED1GF, idx)]  = inv_dxx*(auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED1GF, idx)] - auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED1GF, idxp1)]);
+    evol_gfs[IDX4ptS(STILDED2GF, idx)]  = inv_dxx*(auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED2GF, idx)] - auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED2GF, idxp1)]);
+    evol_gfs[IDX4ptS(RHO_STARGF, idx)]  = inv_dxx*(auxevol_gfs[IDX4ptS(HLLE_FLUX_RHO_STARGF, idx)] - auxevol_gfs[IDX4ptS(HLLE_FLUX_RHO_STARGF, idxp1)]);
+    evol_gfs[IDX4ptS(TAU_TILDEGF,idx)]  = inv_dxx*(auxevol_gfs[IDX4ptS(HLLE_FLUX_TAU_TILDEGF,idx)] - auxevol_gfs[IDX4ptS(HLLE_FLUX_TAU_TILDEGF,idxp1)]);
+
+    // printf("%d %d %d %.15e %.15e %.15e %.15e %.15e\n", i0, i1, i2, 
+    //                                  evol_gfs[IDX4ptS(STILDED0GF, idx)],
+    //                                  evol_gfs[IDX4ptS(STILDED1GF, idx)],
+    //                                  evol_gfs[IDX4ptS(STILDED2GF, idx)],
+    //                                  evol_gfs[IDX4ptS(RHO_STARGF, idx)],
+    //                                  evol_gfs[IDX4ptS(TAU_TILDEGF,idx)]);
+  }
 
   LOOP_REGION(NGHOSTS - 1, Nxx_plus_2NGHOSTS0 - 2,
               NGHOSTS - 1, Nxx_plus_2NGHOSTS1 - 2,
@@ -375,7 +410,13 @@ int main(int argc, const char *argv[]) {
                                 metric_gfs,
                                 auxevol_gfs);
 
-  for(int ijk=0; ijk<Nxx_plus_2NGHOSTS_tot; ijk++) {
+  
+  LOOP_REGION(NGHOSTS - 1, Nxx_plus_2NGHOSTS0 - 2,
+              NGHOSTS - 1, Nxx_plus_2NGHOSTS1 - 2,
+              NGHOSTS - 1, Nxx_plus_2NGHOSTS2 - 2) {
+    
+    int ijk  = IDX3S(i0, i1, i2);
+
     auxevol_gfs[IDX4ptS(U4U0GF, ijk)] = 1.0;
     auxevol_gfs[IDX4ptS(U4_RU0GF, ijk)] = 1.0;
     auxevol_gfs[IDX4ptS(U4_LU0GF, ijk)] = 1.0;
@@ -402,14 +443,38 @@ int main(int argc, const char *argv[]) {
                             &metric_face_quantities,
                             &metric_quantities_derivatives);
 
-    calculate_characteristic_speed_1th_direction(&reconstructed_prims_r, 
-                                                 &reconstructed_prims_l,
-                                                 &metric_face_quantities, 
-                                                 &conservative_fluxes);
-        }
+    calculate_HLLE_fluxes1(&reconstructed_prims_r, 
+                           &reconstructed_prims_l,
+                           &metric_face_quantities, 
+                           &conservative_fluxes);
+
+    auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED0GF, ijk)]  = conservative_fluxes.HLLE_flux_StildeD0;
+    auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED1GF, ijk)]  = conservative_fluxes.HLLE_flux_StildeD1;
+    auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED2GF, ijk)]  = conservative_fluxes.HLLE_flux_StildeD2;
+    auxevol_gfs[IDX4ptS(HLLE_FLUX_RHO_STARGF, ijk)]  = conservative_fluxes.HLLE_flux_rho_star;
+    auxevol_gfs[IDX4ptS(HLLE_FLUX_TAU_TILDEGF,ijk)]  = conservative_fluxes.HLLE_flux_tau_tilde;
+  }
 
   inv_dxx = 1.0 / dxxi[flux_dirn+1];
   printf("%.15e\n", inv_dxx);
+
+
+  LOOP_REGION(NGHOSTS, Nxx_plus_2NGHOSTS0 - NGHOSTS,
+              NGHOSTS, Nxx_plus_2NGHOSTS1 - NGHOSTS,
+              NGHOSTS, Nxx_plus_2NGHOSTS2 - NGHOSTS) {
+    
+    int idx  = IDX3S(i0, i1, i2);
+
+    int idxp1 = IDX3S(i0 + kronecker_delta[flux_dirn+1][0], 
+                      i1 + kronecker_delta[flux_dirn+1][1], 
+                      i2 + kronecker_delta[flux_dirn+1][2]);
+
+    evol_gfs[IDX4ptS(STILDED0GF, idx)]  += inv_dxx*(auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED0GF, idx)] - auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED0GF, idxp1)]);
+    evol_gfs[IDX4ptS(STILDED1GF, idx)]  += inv_dxx*(auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED1GF, idx)] - auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED1GF, idxp1)]);
+    evol_gfs[IDX4ptS(STILDED2GF, idx)]  += inv_dxx*(auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED2GF, idx)] - auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED2GF, idxp1)]);
+    evol_gfs[IDX4ptS(RHO_STARGF, idx)]  += inv_dxx*(auxevol_gfs[IDX4ptS(HLLE_FLUX_RHO_STARGF, idx)] - auxevol_gfs[IDX4ptS(HLLE_FLUX_RHO_STARGF, idxp1)]);
+    evol_gfs[IDX4ptS(TAU_TILDEGF,idx)]  += inv_dxx*(auxevol_gfs[IDX4ptS(HLLE_FLUX_TAU_TILDEGF,idx)] - auxevol_gfs[IDX4ptS(HLLE_FLUX_TAU_TILDEGF,idxp1)]);
+  }
 
   LOOP_REGION(NGHOSTS - 1, Nxx_plus_2NGHOSTS0 - 2,
               NGHOSTS - 1, Nxx_plus_2NGHOSTS1 - 2,
@@ -469,7 +534,12 @@ int main(int argc, const char *argv[]) {
                                 metric_gfs,
                                 auxevol_gfs);
 
-  for(int ijk=0; ijk<Nxx_plus_2NGHOSTS_tot; ijk++) {
+  LOOP_REGION(NGHOSTS - 1, Nxx_plus_2NGHOSTS0 - 2,
+              NGHOSTS - 1, Nxx_plus_2NGHOSTS1 - 2,
+              NGHOSTS - 1, Nxx_plus_2NGHOSTS2 - 2) {
+
+    int ijk  = IDX3S(i0, i1, i2);
+
     auxevol_gfs[IDX4ptS(U4U0GF, ijk)] = 1.0;
     auxevol_gfs[IDX4ptS(U4_RU0GF, ijk)] = 1.0;
     auxevol_gfs[IDX4ptS(U4_LU0GF, ijk)] = 1.0;
@@ -496,14 +566,39 @@ int main(int argc, const char *argv[]) {
                             &metric_face_quantities,
                             &metric_quantities_derivatives);
 
-    calculate_characteristic_speed_2th_direction(&reconstructed_prims_r, 
-                                                 &reconstructed_prims_l,
-                                                 &metric_face_quantities, 
-                                                 &conservative_fluxes);
-        }
+    calculate_HLLE_fluxes2(&reconstructed_prims_r, 
+                           &reconstructed_prims_l,
+                           &metric_face_quantities, 
+                           &conservative_fluxes);
+
+    auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED0GF, ijk)]  = conservative_fluxes.HLLE_flux_StildeD0;
+    auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED1GF, ijk)]  = conservative_fluxes.HLLE_flux_StildeD1;
+    auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED2GF, ijk)]  = conservative_fluxes.HLLE_flux_StildeD2;
+    auxevol_gfs[IDX4ptS(HLLE_FLUX_RHO_STARGF, ijk)]  = conservative_fluxes.HLLE_flux_rho_star;
+    auxevol_gfs[IDX4ptS(HLLE_FLUX_TAU_TILDEGF,ijk)]  = conservative_fluxes.HLLE_flux_tau_tilde;
+
+    }
 
   inv_dxx = 1.0 / dxxi[flux_dirn+1];
   printf("%.15e\n", inv_dxx);
+
+
+  LOOP_REGION(NGHOSTS, Nxx_plus_2NGHOSTS0 - NGHOSTS,
+              NGHOSTS, Nxx_plus_2NGHOSTS1 - NGHOSTS,
+              NGHOSTS, Nxx_plus_2NGHOSTS2 - NGHOSTS) {
+    
+    int idx  = IDX3S(i0, i1, i2);
+
+    int idxp1 = IDX3S(i0 + kronecker_delta[flux_dirn+1][0], 
+                      i1 + kronecker_delta[flux_dirn+1][1], 
+                      i2 + kronecker_delta[flux_dirn+1][2]);
+
+    evol_gfs[IDX4ptS(STILDED0GF, idx)]  += inv_dxx*(auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED0GF, idx)] - auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED0GF, idxp1)]);
+    evol_gfs[IDX4ptS(STILDED1GF, idx)]  += inv_dxx*(auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED1GF, idx)] - auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED1GF, idxp1)]);
+    evol_gfs[IDX4ptS(STILDED2GF, idx)]  += inv_dxx*(auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED2GF, idx)] - auxevol_gfs[IDX4ptS(HLLE_FLUX_STILDED2GF, idxp1)]);
+    evol_gfs[IDX4ptS(RHO_STARGF, idx)]  += inv_dxx*(auxevol_gfs[IDX4ptS(HLLE_FLUX_RHO_STARGF, idx)] - auxevol_gfs[IDX4ptS(HLLE_FLUX_RHO_STARGF, idxp1)]);
+    evol_gfs[IDX4ptS(TAU_TILDEGF,idx)]  += inv_dxx*(auxevol_gfs[IDX4ptS(HLLE_FLUX_TAU_TILDEGF,idx)] - auxevol_gfs[IDX4ptS(HLLE_FLUX_TAU_TILDEGF,idxp1)]);
+  }
 
   LOOP_REGION(NGHOSTS - 1, Nxx_plus_2NGHOSTS0 - 2,
               NGHOSTS - 1, Nxx_plus_2NGHOSTS1 - 2,
@@ -571,11 +666,11 @@ int main(int argc, const char *argv[]) {
                                  &metric_quantities_derivatives,
                                  &conservative_sources);
                                   
-      evol_gfs[IDX4ptS(STILDED0GF, idx)]  = conservative_sources.StildeD0_src;
-      evol_gfs[IDX4ptS(STILDED1GF, idx)]  = conservative_sources.StildeD1_src;
-      evol_gfs[IDX4ptS(STILDED2GF, idx)]  = conservative_sources.StildeD2_src;
-      evol_gfs[IDX4ptS(TAU_TILDEGF, idx)] = conservative_sources.tau_tilde_src;
-      evol_gfs[IDX4ptS(RHO_STARGF, idx)]  = 0.0;
+      evol_gfs[IDX4ptS(STILDED0GF, idx)]  += conservative_sources.StildeD0_src;
+      evol_gfs[IDX4ptS(STILDED1GF, idx)]  += conservative_sources.StildeD1_src;
+      evol_gfs[IDX4ptS(STILDED2GF, idx)]  += conservative_sources.StildeD2_src;
+      evol_gfs[IDX4ptS(TAU_TILDEGF, idx)] += conservative_sources.tau_tilde_src;
+      // evol_gfs[IDX4ptS(RHO_STARGF, idx)]  = 0.0;
 
       // printf("%d %d %d :::: %.15e %.15e %.15e %.15e\n", i0, i1, i2, 
       //                                             evol_gfs[IDX4ptS(TAU_TILDEGF, idx)],
@@ -584,108 +679,36 @@ int main(int argc, const char *argv[]) {
       //                                             evol_gfs[IDX4ptS(STILDED2GF, idx)]);
     }
 
+    FILE *infile = fopen("output_rhs_data.txt", "rb");
+    double rhs_correct_magic_number = 9.524300707856655e-3;
+    double rhs_magic_number1, rhs_magic_number2, rhs_magic_number3;
+    fread(&rhs_magic_number1, sizeof(double), 1, infile);
+    fread(etk_evol_gfs + Nxx_plus_2NGHOSTS_tot*RHO_STARGF, sizeof(double), Nxx_plus_2NGHOSTS_tot, infile);
+    fread(etk_evol_gfs + Nxx_plus_2NGHOSTS_tot*TAU_TILDEGF, sizeof(double), Nxx_plus_2NGHOSTS_tot, infile);
+    fread(etk_evol_gfs + Nxx_plus_2NGHOSTS_tot*STILDED0GF, sizeof(double), Nxx_plus_2NGHOSTS_tot, infile);
+    fread(&rhs_magic_number2, sizeof(double), 1, infile);
+    fread(etk_evol_gfs + Nxx_plus_2NGHOSTS_tot*STILDED1GF, sizeof(double), Nxx_plus_2NGHOSTS_tot, infile);
+    fread(etk_evol_gfs + Nxx_plus_2NGHOSTS_tot*STILDED2GF, sizeof(double), Nxx_plus_2NGHOSTS_tot, infile);
+    fread(&rhs_magic_number3, sizeof(double), 1, infile);
+    fclose(infile);
+    if(rhs_magic_number1!=rhs_correct_magic_number){ printf("ERROR: magic_number1 does not match"); exit(1);}
+    if(rhs_magic_number2!=rhs_correct_magic_number){ printf("ERROR: magic_number2 does not match"); exit(1);}
+    if(rhs_magic_number3!=rhs_correct_magic_number){ printf("ERROR: magic_number3 does not match"); exit(1);}
 
-    //  printf("%.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e\n", 
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD000GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD010GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD020GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD110GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD120GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD220GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD001GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD011GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD021GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD111GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD121GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD221GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD002GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD012GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD022GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD112GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD122GF, idx)],
-    //   auxevol_gfs[IDX4ptS(GAMMADD_DD222GF, idx)]);
-    // }
+    LOOP_REGION(NGHOSTS, Nxx_plus_2NGHOSTS0 - NGHOSTS-1,
+                NGHOSTS, Nxx_plus_2NGHOSTS1 - NGHOSTS-1,
+                NGHOSTS, Nxx_plus_2NGHOSTS2 - NGHOSTS-1) {
 
+      int idx  = IDX3S(i0, i1, i2);
+      printf("%d %d %d ::: %.3f %.3f %.3f %.3f %.3f\n", 
+      i0, i1, i2,
+      log10(fabs(0.5*(evol_gfs[IDX4ptS(STILDED0GF, idx)] - etk_evol_gfs[IDX4ptS(STILDED0GF, idx)]) / (evol_gfs[IDX4ptS(STILDED0GF, idx)] + etk_evol_gfs[IDX4ptS(STILDED0GF, idx)]))),
+      log10(fabs(0.5*(evol_gfs[IDX4ptS(STILDED1GF, idx)] - etk_evol_gfs[IDX4ptS(STILDED1GF, idx)]) / (evol_gfs[IDX4ptS(STILDED1GF, idx)] + etk_evol_gfs[IDX4ptS(STILDED1GF, idx)]))),
+      log10(fabs(0.5*(evol_gfs[IDX4ptS(STILDED2GF, idx)] - etk_evol_gfs[IDX4ptS(STILDED2GF, idx)]) / (evol_gfs[IDX4ptS(STILDED2GF, idx)] + etk_evol_gfs[IDX4ptS(STILDED2GF, idx)]))),
+      log10(fabs(0.5*(evol_gfs[IDX4ptS(TAU_TILDEGF, idx)] - etk_evol_gfs[IDX4ptS(TAU_TILDEGF, idx)]) / (evol_gfs[IDX4ptS(TAU_TILDEGF, idx)] + etk_evol_gfs[IDX4ptS(TAU_TILDEGF, idx)]))),
+      log10(fabs(0.5*(evol_gfs[IDX4ptS(RHO_STARGF, idx)] - etk_evol_gfs[IDX4ptS(RHO_STARGF, idx)]) / (evol_gfs[IDX4ptS(RHO_STARGF, idx)] + etk_evol_gfs[IDX4ptS(RHO_STARGF, idx)]))));
+  }
 
-  // LOOP_REGION(NGHOSTS - 1, Nxx_plus_2NGHOSTS0 - 2,
-  //             NGHOSTS - 1, Nxx_plus_2NGHOSTS1 - 2,
-  //             NGHOSTS - 1, Nxx_plus_2NGHOSTS2 - 2) {
-  //   int idx  = IDX3S(i0, i1, i2);
-  //   printf("%d %d %d :::: alpha_dD0 = %.15e, alpha_dD1 = %.15e, alpha_dD2 = %.15e\n", 
-  //                                           i0, i1, i2,
-  //                                           auxevol_gfs[IDX4ptS(ALPHA_DD0GF, idx)],
-  //                                           auxevol_gfs[IDX4ptS(ALPHA_DD1GF, idx)],
-  //                                           auxevol_gfs[IDX4ptS(ALPHA_DD2GF, idx)]);
-  // }
-
-
-/*
-  // Now we fill our structs and call the relevant functions
-  for(int ijk=0; ijk<Nxx_plus_2NGHOSTS_tot; ijk++) {
-  
-      initialize_structs(ijk, &griddata.params, auxevol_gfs, &reconstructed_prims,
-                         &reconstructed_prims_r,
-                         &reconstructed_prims_l,
-                         &metric_quantities,
-                         &metric_face_quantities,
-                         &metric_quantities_derivatives);
-                         
-         
-     calculate_all_source_terms(&reconstructed_prims,
-                                &metric_quantities,
-                                &metric_quantities_derivatives,
-                                &conservative_sources);
-                                
-    evol_gfs[IDX4ptS(STILDED0GF, ijk)]  = conservative_sources.StildeD0_src;
-    evol_gfs[IDX4ptS(STILDED1GF, ijk)]  = conservative_sources.StildeD1_src;
-    evol_gfs[IDX4ptS(STILDED2GF, ijk)]  = conservative_sources.StildeD2_src;
-    evol_gfs[IDX4ptS(TAU_TILDEGF, ijk)] = conservative_sources.tau_tilde_src;
-    evol_gfs[IDX4ptS(RHO_STARGF, ijk)]  = 0.0;
-
-    calculate_HLLE_fluxes0(&reconstructed_prims_r, 
-                           &reconstructed_prims_l,
-                           &metric_face_quantities,
-                           &conservative_fluxes);
-                           
-    evol_gfs[IDX4ptS(STILDED0GF, ijk)]  += conservative_fluxes.HLLE_flux_StildeD0;
-    evol_gfs[IDX4ptS(STILDED1GF, ijk)]  += conservative_fluxes.HLLE_flux_StildeD1;
-    evol_gfs[IDX4ptS(STILDED2GF, ijk)]  += conservative_fluxes.HLLE_flux_StildeD2;
-    evol_gfs[IDX4ptS(TAU_TILDEGF, ijk)] += conservative_fluxes.HLLE_flux_tau_tilde;
-    evol_gfs[IDX4ptS(RHO_STARGF, ijk)]  += conservative_fluxes.HLLE_flux_rho_star;
-
-    calculate_HLLE_fluxes1(&reconstructed_prims_r, 
-                           &reconstructed_prims_l,
-                           &metric_face_quantities,
-                           &conservative_fluxes);
-
-    evol_gfs[IDX4ptS(STILDED0GF, ijk)]  += conservative_fluxes.HLLE_flux_StildeD0;
-    evol_gfs[IDX4ptS(STILDED1GF, ijk)]  += conservative_fluxes.HLLE_flux_StildeD1;
-    evol_gfs[IDX4ptS(STILDED2GF, ijk)]  += conservative_fluxes.HLLE_flux_StildeD2;
-    evol_gfs[IDX4ptS(TAU_TILDEGF, ijk)] += conservative_fluxes.HLLE_flux_tau_tilde;
-    evol_gfs[IDX4ptS(RHO_STARGF, ijk)]  += conservative_fluxes.HLLE_flux_rho_star;
-
-    calculate_HLLE_fluxes2(&reconstructed_prims_r, 
-                           &reconstructed_prims_l,
-                           &metric_face_quantities,
-                           &conservative_fluxes);
-
-    evol_gfs[IDX4ptS(STILDED0GF, ijk)]  += conservative_fluxes.HLLE_flux_StildeD0;
-    evol_gfs[IDX4ptS(STILDED1GF, ijk)]  += conservative_fluxes.HLLE_flux_StildeD1;
-    evol_gfs[IDX4ptS(STILDED2GF, ijk)]  += conservative_fluxes.HLLE_flux_StildeD2;
-    evol_gfs[IDX4ptS(TAU_TILDEGF, ijk)] += conservative_fluxes.HLLE_flux_tau_tilde;
-    evol_gfs[IDX4ptS(RHO_STARGF, ijk)]  += conservative_fluxes.HLLE_flux_rho_star;                         
- }
- 
- 
-//  for(int ijk=0; ijk<Nxx_plus_2NGHOSTS_tot; ijk++) {
-//     printf("%.6e %.6e %.6e %.6e %.6e\n", evol_gfs[IDX4ptS(STILDED0GF, ijk)], 
-//                                               evol_gfs[IDX4ptS(STILDED1GF, ijk)], 
-//                                               evol_gfs[IDX4ptS(STILDED2GF, ijk)], 
-//                                               evol_gfs[IDX4ptS(TAU_TILDEGF, ijk)],
-//                                               evol_gfs[IDX4ptS(RHO_STARGF, ijk)]);
-    
-// }
-*/
  
   // Step 4: Free all allocated memory
   free(evol_gfs);

@@ -46,7 +46,7 @@ static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const 
   //   we are only computing the flux in one direction at a time. This is because in the end,
   //   we only need the rhs's from 3 to cctk_lsh-3 for i, j, and k.
   char out_filename[100];
-  sprintf(out_filename, "char_speeds_flux_dirn%d.txt", flux_dirn);
+  sprintf(out_filename, "fluxes_dirn%d.txt", flux_dirn);
   FILE *out3D = fopen(out_filename, "wb");
    
 #pragma omp parallel for
@@ -123,9 +123,14 @@ static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const 
 	  // printf("%.15e %.15e\n", g4yy_fp1 - g4yy_f, g4tt_fp1 - g4tt_f);
 	  // printf("%.15e\n", dxi[flux_dirn]);
 
-	  fprintf(out3D,"%d %d %d %.15e %.15e\n", 
-            i, j, k,
-            cmax[index],cmin[index]);
+	  fprintf(out3D,"%d %d %d %.15e %.15e %.15e %.15e %.15e %.15e %.15e\n", 
+        i, j, k,
+				st_x_flux[index],
+				st_y_flux[index],
+				st_z_flux[index],						
+        rho_star_flux[index],
+				tau_flux[index],
+				cmax[index],cmin[index]);
 
 	  // Needed for tau_rhs computation:
 	  CCTK_REAL lapse_deriv[4] = { 0,0,0,0 };
@@ -171,9 +176,9 @@ static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const 
 	int indexp1 = CCTK_GFINDEX3D(cctkGH,i+kronecker_delta[flux_dirn][0],j+kronecker_delta[flux_dirn][1],k+kronecker_delta[flux_dirn][2]);
 
 	rho_star_rhs[index] += (rho_star_flux[index] - rho_star_flux[indexp1]) * dxi[flux_dirn];
-	// tau_rhs[index]      += (tau_flux[index]      - tau_flux[indexp1]     ) * dxi[flux_dirn];
-	// st_x_rhs[index]     += (st_x_flux[index]     - st_x_flux[indexp1]    ) * dxi[flux_dirn];
-	// st_y_rhs[index]     += (st_y_flux[index]     - st_y_flux[indexp1]    ) * dxi[flux_dirn];
-	// st_z_rhs[index]     += (st_z_flux[index]     - st_z_flux[indexp1]    ) * dxi[flux_dirn];
+	tau_rhs[index]      += (tau_flux[index]      - tau_flux[indexp1]     ) * dxi[flux_dirn];
+	st_x_rhs[index]     += (st_x_flux[index]     - st_x_flux[indexp1]    ) * dxi[flux_dirn];
+	st_y_rhs[index]     += (st_y_flux[index]     - st_y_flux[indexp1]    ) * dxi[flux_dirn];
+	st_z_rhs[index]     += (st_z_flux[index]     - st_z_flux[indexp1]    ) * dxi[flux_dirn];
       }
 }

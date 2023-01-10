@@ -229,7 +229,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   eos.K_poly=randf(scale);
   eos.rho_tab[0]=randf(scale);
   eos.P_tab[0]=randf(scale);
-  eos.gamma_th=randf(scale);
+  eos.gamma_th=4.567; //randf(scale);
   eos.eps_tab[0]=randf(scale);
   eos.k_tab[0]=randf(scale);
   eos.gamma_tab[0]=randf(scale);
@@ -601,17 +601,16 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   sprintf(out_filename, "output_rhs_data.txt");
   FILE *out3D = fopen(out_filename, "wb");
 
-  // #pragma omp parallel for
-  for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
-    int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
-
-   fprintf(out3D,"%d %d %d %.15e %.15e %.15e %.15e\n", 
-            i, j, k,
-            tau_rhs[index],
-            st_x_rhs[index],
-            st_y_rhs[index],
-            st_z_rhs[index]);
-     }
+  const CCTK_INT num_pts = cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2];
+  CCTK_REAL magic_number = 9.524300707856655e-3;
+  fwrite(&magic_number, sizeof(CCTK_REAL), 1, out3D);
+  fwrite(rho_star_rhs, sizeof(CCTK_REAL)*(num_pts), 1, out3D);
+  fwrite(tau_rhs, sizeof(CCTK_REAL)*(num_pts), 1, out3D);
+  fwrite(st_x_rhs, sizeof(CCTK_REAL)*(num_pts), 1, out3D);
+  fwrite(&magic_number, sizeof(CCTK_REAL), 1, out3D);
+  fwrite(st_y_rhs, sizeof(CCTK_REAL)*(num_pts), 1, out3D);
+  fwrite(st_z_rhs, sizeof(CCTK_REAL)*(num_pts), 1, out3D);
+  fwrite(&magic_number, sizeof(CCTK_REAL), 1, out3D);
   fclose(out3D);
 
   printf("Finshed printing data.\n");

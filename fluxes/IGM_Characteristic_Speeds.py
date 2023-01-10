@@ -44,21 +44,23 @@ def find_cp_cm(flux_dirn, g4UU,
     detm = sp.sqrt(noif.max_noif(sp.sympify(0),detm))
     global cplus,cminus
     # note that these correspond to a single interface, left or right
-    cplus_tmp  = sp.Rational(1,2)*(-b/a + detm/a)
-    cminus_tmp = sp.Rational(1,2)*(-b/a - detm/a)
+    cplus_tmp  = sp.Rational(1,2)* (-b/a + detm/a)
+    cminus_tmp = sp.Rational(1,2)*-( b/a + detm/a)
     
-    cminus =   noif.coord_less_bound(cplus_tmp, cminus_tmp)*cplus_tmp\
-             + noif.coord_greater_bound(cplus_tmp, cminus_tmp)*cminus_tmp
+    cminus = noif.min_noif(cplus_tmp, cminus_tmp)
+    cplus  = noif.max_noif(cplus_tmp, cminus_tmp)
+    
+#     cminus =   noif.coord_less_bound(cplus_tmp, cminus_tmp)*cplus_tmp\
+#              + noif.coord_greater_bound(cplus_tmp, cminus_tmp)*cminus_tmp
 
-    cplus =   noif.coord_less_bound(cplus_tmp, cminus_tmp)*cminus_tmp\
-            + noif.coord_greater_bound(cplus_tmp, cminus_tmp)*cplus_tmp
+#     cplus =   noif.coord_less_bound(cplus_tmp, cminus_tmp)*cminus_tmp\
+#             + noif.coord_greater_bound(cplus_tmp, cminus_tmp)*cplus_tmp
 
     # the above in C code
     # if (cplus < cminus) {
     # CCTK_REAL cp = cminus;
     # cminus = cplus;
     # cplus = cp;
-    
 
 # We'll write this as a function, and call it within HLLE_solver, below.
 def find_cmax_cmin(flux_dirn, gamma_faceDD, beta_faceU, alpha_face,
