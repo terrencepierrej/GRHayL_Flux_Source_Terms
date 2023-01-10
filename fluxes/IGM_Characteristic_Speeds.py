@@ -28,9 +28,9 @@ def find_cp_cm(flux_dirn, g4UU,
                smallbsquared, u4U, Gamma_th, 
                epsilon_th, dPcold_drhob, h, rho_b):
     # Outputs: cplus,cminus
-    vA = sp.sqrt( smallbsquared / (rho_b*h + smallbsquared) )
-    cs = (dPcold_drhob + Gamma_th*(Gamma_th-1)*epsilon_th) / h
-    v02 = vA**2 + (cs**2)*(1 - vA**2)
+    vA2 = smallbsquared / (rho_b*h + smallbsquared)
+    cs2 = (dPcold_drhob + Gamma_th*(Gamma_th-1)*epsilon_th) / h
+    v02 = vA2 + (cs2)*(1 - vA2)
     
     a = (1 - v02)*(u4U[0]**2) - v02*g4UU[0][0]
     b = 2*v02*g4UU[flux_dirn+1][0] - 2*u4U[flux_dirn+1]*u4U[0]*(1 - v02)
