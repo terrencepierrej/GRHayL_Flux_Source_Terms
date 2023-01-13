@@ -13,11 +13,8 @@ from outputC import outputC, add_to_Cfunction_dict # NRPy+: Core C code output m
 import sympy as sp               # SymPy: The Python computer algebra package upon which NRPy+ depends
 import finite_difference as fin  # NRPy+: Finite difference C code generation module
 import NRPy_param_funcs as par   # NRPy+: Parameter interface
-import grid as gri               # NRPy+: Functions having to do with numerical grids
 import indexedexp as ixp         # NRPy+: Symbolic indexed expression (e.g., tensors, vectors, etc.) support
 import reference_metric as rfm   # NRPy+: Reference metric support
-import cmdline_helper as cmd     # NRPy+: Multi-platform Python command-line interface
-
 
 #Step 0: Set the spatial dimension parameter to 3.
 par.set_parval_from_str("grid::DIM", 3)
@@ -203,8 +200,6 @@ def add_to_Cfunction_dict__GRMHD_fluxes(formalism="ADM", outCparams = "outCverbo
 
     characteristic_speeds = ["cmax", "cmin"]
 
-    params = [] #["TINYDOUBLE", "sqrt4pi"]
-
     prestring = ""
 
     for var in prims_velocities_r + prims_mag_field_r:
@@ -216,8 +211,6 @@ def add_to_Cfunction_dict__GRMHD_fluxes(formalism="ADM", outCparams = "outCverbo
     for var in other_prims:
         prestring += "const double "+var+"_r = reconstructed_prims_r->"+var+";\n"
         prestring += "const double "+var+"_l = reconstructed_prims_l->"+var+";\n"
-    for var in params:
-        prestring += "const double "+var+" = rhss_params->"+var+";\n"
 
     prestring += "const double "+str(alpha_face)+" = metric_face_quantities->"+str(alpha_face)+";\n"
     
@@ -256,7 +249,7 @@ def add_to_Cfunction_dict__GRMHD_fluxes(formalism="ADM", outCparams = "outCverbo
                      "conservative_fluxes->HLLE_flux_rho_star", "conservative_fluxes->HLLE_flux_tau_tilde"]
 
     c_type = "void"
-#     params   = "const rhss_params_struct *restrict rhss_params, "
+    
     params  = "const reconstructed_prims_struct *restrict reconstructed_prims_r, const reconstructed_prims_struct *restrict reconstructed_prims_l,"
     params  += "const metric_face_quantities_struct *restrict metric_face_quantities, "
     params  += "conservative_fluxes_struct *restrict conservative_fluxes"
@@ -293,8 +286,7 @@ def add_to_Cfunction_dict__GRMHD_fluxes(formalism="ADM", outCparams = "outCverbo
         desc = "Compute the HLLE-derived fluxes on the left face in the " + str(flux_dirn) + "direction for all components."
         name = "calculate_HLLE_fluxes" + str(flux_dirn)
         includes = ["NRPy_basic_defines.h", "NRPy_function_prototypes.h"]
-        #["flux_src_header.h", "calculate_characteristic_speed_" + str(flux_dirn) +"th_direction"]
-
+        
         add_to_Cfunction_dict(
             includes=includes,
             desc=desc,

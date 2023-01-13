@@ -49,12 +49,6 @@ def find_cp_cm(flux_dirn, g4UU,
     
     cminus = noif.min_noif(cplus_tmp, cminus_tmp)
     cplus  = noif.max_noif(cplus_tmp, cminus_tmp)
-    
-#     cminus =   noif.coord_less_bound(cplus_tmp, cminus_tmp)*cplus_tmp\
-#              + noif.coord_greater_bound(cplus_tmp, cminus_tmp)*cminus_tmp
-
-#     cplus =   noif.coord_less_bound(cplus_tmp, cminus_tmp)*cminus_tmp\
-#             + noif.coord_greater_bound(cplus_tmp, cminus_tmp)*cplus_tmp
 
     # the above in C code
     # if (cplus < cminus) {
@@ -191,8 +185,6 @@ def add_to_Cfunction_dict__GRMHD_characteristic_speeds(formalism="ADM", outCpara
 
     characteristic_speeds = ["cmax", "cmin"]
 
-    params = [] #["TINYDOUBLE", "sqrt4pi"]
-
     prestring = ""
 
     for var in prims_velocities_r + prims_mag_field_r:
@@ -204,8 +196,6 @@ def add_to_Cfunction_dict__GRMHD_characteristic_speeds(formalism="ADM", outCpara
     for var in other_prims:
         prestring += "const double "+var+"_r = reconstructed_prims_r->"+var+";\n"
         prestring += "const double "+var+"_l = reconstructed_prims_l->"+var+";\n"
-    for var in params:
-        prestring += "const double "+var+" = rhss_params->"+var+";\n"
 
     prestring += "const double "+str(alpha_face)+" = metric_face_quantities->"+str(alpha_face)+";\n"
     
@@ -240,7 +230,7 @@ def add_to_Cfunction_dict__GRMHD_characteristic_speeds(formalism="ADM", outCpara
                 checker.append(gammaDD_var)
 
     c_type = "void"
-#     params   = "const rhss_params_struct *restrict rhss_params, "
+    
     params  = "const reconstructed_prims_struct *restrict reconstructed_prims_r, const reconstructed_prims_struct *restrict reconstructed_prims_l,"
     params  += "const metric_face_quantities_struct *restrict metric_face_quantities, "
     params  += "conservative_fluxes_struct *restrict conservative_fluxes"
@@ -255,7 +245,6 @@ def add_to_Cfunction_dict__GRMHD_characteristic_speeds(formalism="ADM", outCpara
         desc = "Compute the characteristic speeds in" + str(flux_dirn) +"th direction"
         name = "calculate_characteristic_speed_" + str(flux_dirn) +"th_direction"
         includes = ["NRPy_basic_defines.h", "NRPy_function_prototypes.h"]
-        #"flux_src_header.h",
 
         add_to_Cfunction_dict(
                 includes=includes,

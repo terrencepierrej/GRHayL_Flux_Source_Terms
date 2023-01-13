@@ -11,13 +11,8 @@ if nrpy_dir_path not in sys.path:
 
 # Step P1: Import needed NRPy+ core modules:
 from outputC import outputC, add_to_Cfunction_dict  # NRPy+: Core C code output module
-import finite_difference as fin       # NRPy+: Finite difference C code generation module
 import NRPy_param_funcs as par        # NRPy+: Parameter interface
-import grid as gri                    # NRPy+: Functions having to do with numerical grids
 import reference_metric as rfm        # NRPy+: Reference metric support
-import indexedexp as ixp         # NRPy+: Symbolic indexed expression (e.g., tensors, vectors, etc.) support
-import cmdline_helper as cmd          # NRPy+: Multi-platform Python command-line interface
-import shutil, os, sys                # Standard Python modules for multiplatform OS-level functions
 import sympy as sp                # SymPy: The Python computer algebra package upon which NRPy+ depends
 
 thismodule = __name__
@@ -80,22 +75,19 @@ def add_to_Cfunction_dict__Stilde_SourceTerms(formalism="ADM"):
     prims_velocities = ["u4U0", "u4U1", "u4U2", "u4U3"]
     
     prims = prims_velocities + ["BU0", "BU1", "BU2", "P", "h", "rhob"]
-    params = [] #["TINYDOUBLE", "sqrt4pi"]
-
 
     prestring = ""
 
     for var in all_free_sysmbols:
         if str(var) in prims:
             prestring += "const double "+str(var)+" = reconstructed_prims->"+str(var)+";\n"
-        if str(var) in params:
-            prestring += "const double "+str(var)+" = rhss_params->"+str(var)+";\n"
 
     prestring += "const double "+str(GRMHD.alpha)+" = metric_quantities->"+str(GRMHD.alpha)+";\n"
     
     checker = []
     
     if formalism=="BSSN":
+        # BSSN quantiites
         prestring += "const double "+str(GRMHD.Bq.trK)+" = metric_quantities->"+str(GRMHD.Bq.trK)+";\n"
         prestring += "const double "+str(GRMHD.Bq.cf)+" = metric_quantities->"+str(GRMHD.Bq.cf)+";\n"
 
@@ -124,6 +116,7 @@ def add_to_Cfunction_dict__Stilde_SourceTerms(formalism="ADM"):
                 prestring += "const double "+str(var)+" = metric_quantities_derivatives->"+str(var)+";\n"
 
     else:
+        # ADM quantities
         for i in range(3):
                 betaU_var = GRMHD.betaU[i]
                 prestring += "const double "+str(betaU_var)+" = metric_quantities->"+str(betaU_var)+";\n"
