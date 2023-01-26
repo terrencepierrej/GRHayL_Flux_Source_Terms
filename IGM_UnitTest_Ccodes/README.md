@@ -1,8 +1,8 @@
-# CurviIGH_Ccodes
+# IGM_UnitTest_Ccodes
 
 
 ## Description
-A place to hold all C codes, so that full evolutions don't have to regerenate them from scratch
+A place to hold all C codes
 
 <!-- 
 ## Project status
